@@ -837,7 +837,7 @@ export default function GameVotingForm() {
                             </a>
 
                             <a
-                                href="www.linkedin.com/in/arthur-araujo-7bb8041a9"
+                                href="https://www.linkedin.com/in/arthur-araujo-7bb8041a9/"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
