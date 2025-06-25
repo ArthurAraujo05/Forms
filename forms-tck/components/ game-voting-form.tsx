@@ -389,26 +389,23 @@ export default function GameVotingForm() {
         <div className="min-h-screen relative p-6">
             {/* Background Images */}
             <div className="fixed inset-0 z-0">
-                {/* Primeira imagem de fundo */}
+                {/* Imagem da esquerda */}
                 <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+                    className="absolute left-0 top-0 h-full w-1/2 bg-cover bg-left bg-no-repeat "
                     style={{
-                        backgroundImage: `url('/gaming-bg-1.png')`,
-                        filter: "blur(1px)",
+                        backgroundImage: `url('/gaming-bg-1.jpg')`,
                     }}
                 />
-                {/* Segunda imagem de fundo sobreposta */}
+
+                {/* Imagem da direita */}
                 <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+                    className="absolute right-0 top-0 h-full w-1/2 bg-cover bg-right bg-no-repeat "
                     style={{
-                        backgroundImage: `url('/gaming-bg-2.png')`,
-                        filter: "blur(2px)",
-                        mixBlendMode: "overlay",
+                        backgroundImage: `url('/gaming-bg-2.jpg')`,
                     }}
                 />
-                {/* Overlay para melhorar legibilidade */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-gray-50/90 to-white/80" />
             </div>
+
 
             {/* Conteúdo principal */}
             <div className="relative z-10 max-w-4xl mx-auto">
