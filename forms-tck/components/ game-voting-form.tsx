@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -44,7 +44,7 @@ export default function GameVotingForm() {
     const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin123"
 
     // Carregar dados do Supabase
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         try {
             setIsLoading(true)
 
@@ -81,18 +81,18 @@ export default function GameVotingForm() {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [userId])
 
     // Carregar dados iniciais
     useEffect(() => {
         loadData()
-    }, [userId])
+    }, [userId, loadData])
 
     // Atualizar dados a cada 10 segundos
     useEffect(() => {
         const interval = setInterval(loadData, 10000)
         return () => clearInterval(interval)
-    }, [userId])
+    }, [userId, loadData])
 
     // Configurar real-time updates
     useEffect(() => {
@@ -116,7 +116,7 @@ export default function GameVotingForm() {
             supabase.removeChannel(gamesChannel)
             supabase.removeChannel(votesChannel)
         }
-    }, [userId])
+    }, [userId, loadData])
 
     const handleVote = async (gameId: number) => {
         if (userVotes.includes(gameId)) return
@@ -424,7 +424,7 @@ export default function GameVotingForm() {
                         {searchTerm && (
                             <div className="mt-2 text-sm text-gray-600">
                                 {filteredGames.length} jogo{filteredGames.length !== 1 ? "s" : ""} encontrado
-                                {filteredGames.length !== 1 ? "s" : ""} para "{searchTerm}"
+                                {filteredGames.length !== 1 ? "s" : ""} para &quot;{searchTerm}&quot;
                             </div>
                         )}
                     </CardContent>
