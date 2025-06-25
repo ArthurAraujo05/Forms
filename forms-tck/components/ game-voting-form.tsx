@@ -25,6 +25,7 @@ export default function GameVotingForm() {
     { id: 6, name: "Elden Ring", genre: "Souls-like", votes: 22 },
   ])
 
+  const [votedGames, setVotedGames] = useState<number[]>([])
   const [newGameName, setNewGameName] = useState("")
   const [showSuggestionForm, setShowSuggestionForm] = useState(false)
 
@@ -32,20 +33,24 @@ export default function GameVotingForm() {
   const [adminPassword, setAdminPassword] = useState("")
   const [showAdminLogin, setShowAdminLogin] = useState(false)
 
-  const ADMIN_PASSWORD = "tckforever123omelhor"
+  const ADMIN_PASSWORD = "admin123"
 
   const handleVote = (gameId: number) => {
+    if (votedGames.includes(gameId)) return
     setGames(games.map((game) => (game.id === gameId ? { ...game, votes: game.votes + 1 } : game)))
+    setVotedGames([...votedGames, gameId])
   }
 
   const handleSuggestGame = () => {
     if (!newGameName.trim()) return
+
     const newGame: Game = {
       id: games.length + 1,
       name: newGameName,
       genre: "Sugestão",
       votes: 0,
     }
+
     setGames([...games, newGame])
     setNewGameName("")
     setShowSuggestionForm(false)
@@ -61,23 +66,28 @@ export default function GameVotingForm() {
     }
   }
 
-  const handleAdminLogout = () => setIsAdminMode(false)
+  const handleAdminLogout = () => {
+    setIsAdminMode(false)
+  }
 
   const handleRemoveGame = (gameId: number) => {
     if (confirm("Tem certeza que deseja remover este jogo?")) {
       setGames(games.filter((game) => game.id !== gameId))
+      setVotedGames(votedGames.filter((id) => id !== gameId))
     }
   }
 
   const handleResetAllVotes = () => {
     if (confirm("Tem certeza que deseja resetar todos os votos?")) {
       setGames(games.map((game) => ({ ...game, votes: 0 })))
+      setVotedGames([])
     }
   }
 
   const handleClearAllGames = () => {
     if (confirm("Tem certeza que deseja remover TODOS os jogos?")) {
       setGames([])
+      setVotedGames([])
     }
   }
 
@@ -155,6 +165,13 @@ export default function GameVotingForm() {
         <div className="text-center mb-12">
           <h1 className="text-3xl font-light text-gray-900 mb-2">Votação de Jogos</h1>
           <p className="text-gray-600">Escolha qual jogo deve ser jogado na próxima stream</p>
+          {votedGames.length > 0 && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-blue-800 text-sm">
+                ✓ Você votou em {votedGames.length} jogo{votedGames.length > 1 ? "s" : ""}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Games List */}
@@ -171,44 +188,52 @@ export default function GameVotingForm() {
               </CardContent>
             </Card>
           ) : (
-            sortedGames.map((game, index) => (
-              <Card key={game.id} className="border border-gray-200">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
-                        <h3 className="text-lg font-medium text-gray-900">{game.name}</h3>
-                        <Badge variant="secondary" className="text-xs">
-                          {game.genre}
-                        </Badge>
+            sortedGames.map((game, index) => {
+              const hasVotedThisGame = votedGames.includes(game.id)
+              return (
+                <Card key={game.id} className="border border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
+                          <h3 className="text-lg font-medium text-gray-900">{game.name}</h3>
+                          <Badge variant="secondary" className="text-xs">
+                            {game.genre}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="text-2xl font-light text-gray-900">{game.votes}</div>
-                        <div className="text-sm text-gray-500">votos</div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button onClick={() => handleVote(game.id)} className="min-w-[80px]">
-                          Votar
-                        </Button>
-                        {isAdminMode && (
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-2xl font-light text-gray-900">{game.votes}</div>
+                          <div className="text-sm text-gray-500">votos</div>
+                        </div>
+                        <div className="flex gap-2">
                           <Button
-                            onClick={() => handleRemoveGame(game.id)}
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleVote(game.id)}
+                            disabled={hasVotedThisGame}
+                            variant={hasVotedThisGame ? "secondary" : "default"}
+                            className="min-w-[80px]"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            {hasVotedThisGame ? "✓ Votado" : "Votar"}
                           </Button>
-                        )}
+                          {isAdminMode && (
+                            <Button
+                              onClick={() => handleRemoveGame(game.id)}
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              )
+            })
           )}
         </div>
 
