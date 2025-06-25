@@ -192,7 +192,7 @@ export default function GameVotingForm() {
   "hitler", "nazismo", "nazi", "fascismo", "fascist", "kkk", "supremacista", "white power", "heil hitler",
 
   // Palavras que causam problemas em ambientes de comunidade
-  "ex", "julia", "jhulia", "xulia", "cu de burro simulato", "cocosimulator", "hentai simulator", "NUDES MAE DO TCK", "nudes", "nude", "nueds", "nuudes", "nude mae do tck", "n u d e s", "nu d es", "nude(s),"
+  "ex", "julia", "jhulia", "xulia", "cu de burro simulato", "cocosimulator", "hentai simulator", "NUDES MAE DO TCK", "nudes", "nude", "nueds", "nuudes", "nude mae do tck", "n u d e s", "nu d es", "nude(s)", "xVideos",  "Vazadinhos Telegram", "Sua Mãe", "EROME.COM", "EROME.COM", "Erome.com", "Erome", "Erome.com", "Pika roxa", "pika roxa", "pika roxinha", "pika roxinha do tck", "pika roxinha do tckuu", "pika roxinha do tckuu simulator", "tckuu simulator", "tckuu simulator 2023", "tckuu simulator 2024", "tckuu simulator 2025",
 ]
 
     const validateGameName = (name: string): { isValid: boolean; reason?: string } => {
