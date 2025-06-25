@@ -10,626 +10,692 @@ import { Trash2, Settings, RotateCcw, EyeOff, RefreshCw, Users } from "lucide-re
 import { supabase, type Game } from "@/lib/supabase"
 
 export default function GameVotingForm() {
-  const [games, setGames] = useState<Game[]>([])
-  const [userVotes, setUserVotes] = useState<number[]>([])
-  const [userId] = useState(() => {
-    if (typeof window !== "undefined") {
-      let id = localStorage.getItem("voting-user-id")
-      if (!id) {
-        id = "user_" + Math.random().toString(36).substr(2, 9)
-        localStorage.setItem("voting-user-id", id)
-      }
-      return id
+    const [games, setGames] = useState<Game[]>([])
+    const [userVotes, setUserVotes] = useState<number[]>([])
+    const [userId] = useState(() => {
+        if (typeof window !== "undefined") {
+            let id = localStorage.getItem("voting-user-id")
+            if (!id) {
+                id = "user_" + Math.random().toString(36).substr(2, 9)
+                localStorage.setItem("voting-user-id", id)
+            }
+            return id
+        }
+        return "user_" + Math.random().toString(36).substr(2, 9)
+    })
+
+    const [newGameName, setNewGameName] = useState("")
+    const [showSuggestionForm, setShowSuggestionForm] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+    const [totalUsers, setTotalUsers] = useState(0)
+
+    // Admin states
+    const [isAdminMode, setIsAdminMode] = useState(false)
+    const [adminPassword, setAdminPassword] = useState("")
+    const [showAdminLogin, setShowAdminLogin] = useState(false)
+
+    // Estados de paginação
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
+
+    // Estado de busca
+    const [searchTerm, setSearchTerm] = useState("")
+
+    const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin123"
+
+    // Carregar dados do Supabase
+    const loadData = async () => {
+        try {
+            setIsLoading(true)
+
+            // Carregar jogos
+            const { data: gamesData, error: gamesError } = await supabase
+                .from("games")
+                .select("*")
+                .order("votes", { ascending: false })
+
+            if (gamesError) throw gamesError
+
+            // Carregar votos do usuário
+            const { data: votesData, error: votesError } = await supabase
+                .from("votes")
+                .select("game_id")
+                .eq("user_id", userId)
+
+            if (votesError) throw votesError
+
+            // Contar usuários únicos
+            const { data: uniqueUsers, error: usersError } = await supabase.from("votes").select("user_id")
+
+            if (!usersError && uniqueUsers) {
+                const unique = new Set(uniqueUsers.map((v) => v.user_id))
+                setTotalUsers(unique.size)
+            }
+
+            setGames(gamesData || [])
+            setUserVotes(votesData?.map((v) => v.game_id) || [])
+
+            console.log("Dados carregados:", gamesData?.length, "jogos")
+        } catch (error) {
+            console.error("Erro ao carregar dados:", error)
+        } finally {
+            setIsLoading(false)
+        }
     }
-    return "user_" + Math.random().toString(36).substr(2, 9)
-  })
 
-  const [newGameName, setNewGameName] = useState("")
-  const [showSuggestionForm, setShowSuggestionForm] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [totalUsers, setTotalUsers] = useState(0)
-
-  // Admin states
-  const [isAdminMode, setIsAdminMode] = useState(false)
-  const [adminPassword, setAdminPassword] = useState("")
-  const [showAdminLogin, setShowAdminLogin] = useState(false)
-
-  // Estados de paginação
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
-
-  const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin123"
-
-  // Carregar dados do Supabase
-  const loadData = async () => {
-    try {
-      setIsLoading(true)
-
-      // Carregar jogos
-      const { data: gamesData, error: gamesError } = await supabase
-        .from("games")
-        .select("*")
-        .order("votes", { ascending: false })
-
-      if (gamesError) throw gamesError
-
-      // Carregar votos do usuário
-      const { data: votesData, error: votesError } = await supabase
-        .from("votes")
-        .select("game_id")
-        .eq("user_id", userId)
-
-      if (votesError) throw votesError
-
-      // Contar usuários únicos
-      const { data: uniqueUsers, error: usersError } = await supabase.from("votes").select("user_id")
-
-      if (!usersError && uniqueUsers) {
-        const unique = new Set(uniqueUsers.map((v) => v.user_id))
-        setTotalUsers(unique.size)
-      }
-
-      setGames(gamesData || [])
-      setUserVotes(votesData?.map((v) => v.game_id) || [])
-
-      console.log("Dados carregados:", gamesData?.length, "jogos")
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Carregar dados iniciais
-  useEffect(() => {
-    loadData()
-  }, [userId])
-
-  // Atualizar dados a cada 10 segundos
-  useEffect(() => {
-    const interval = setInterval(loadData, 10000)
-    return () => clearInterval(interval)
-  }, [userId])
-
-  // Configurar real-time updates
-  useEffect(() => {
-    const gamesChannel = supabase
-      .channel("games-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "games" }, () => {
-        console.log("Mudança detectada nos jogos, recarregando...")
+    // Carregar dados iniciais
+    useEffect(() => {
         loadData()
-      })
-      .subscribe()
+    }, [userId])
 
-    const votesChannel = supabase
-      .channel("votes-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "votes" }, () => {
-        console.log("Mudança detectada nos votos, recarregando...")
-        loadData()
-      })
-      .subscribe()
+    // Atualizar dados a cada 10 segundos
+    useEffect(() => {
+        const interval = setInterval(loadData, 10000)
+        return () => clearInterval(interval)
+    }, [userId])
 
-    return () => {
-      supabase.removeChannel(gamesChannel)
-      supabase.removeChannel(votesChannel)
+    // Configurar real-time updates
+    useEffect(() => {
+        const gamesChannel = supabase
+            .channel("games-changes")
+            .on("postgres_changes", { event: "*", schema: "public", table: "games" }, () => {
+                console.log("Mudança detectada nos jogos, recarregando...")
+                loadData()
+            })
+            .subscribe()
+
+        const votesChannel = supabase
+            .channel("votes-changes")
+            .on("postgres_changes", { event: "*", schema: "public", table: "votes" }, () => {
+                console.log("Mudança detectada nos votos, recarregando...")
+                loadData()
+            })
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(gamesChannel)
+            supabase.removeChannel(votesChannel)
+        }
+    }, [userId])
+
+    const handleVote = async (gameId: number) => {
+        if (userVotes.includes(gameId)) return
+
+        try {
+            setIsLoading(true)
+
+            // Adicionar voto na tabela votes
+            const { error: voteError } = await supabase.from("votes").insert({ user_id: userId, game_id: gameId })
+
+            if (voteError) throw voteError
+
+            // Incrementar contador de votos do jogo
+            const { error: updateError } = await supabase.rpc("increment_votes", { game_id: gameId })
+
+            if (updateError) throw updateError
+
+            console.log("Voto registrado para jogo:", gameId)
+            await loadData()
+        } catch (error) {
+            console.error("Erro ao votar:", error)
+            alert("Erro ao registrar voto")
+        } finally {
+            setIsLoading(false)
+        }
     }
-  }, [userId])
 
-  const handleVote = async (gameId: number) => {
-    if (userVotes.includes(gameId)) return
+    const handleSuggestGame = async () => {
+        if (!newGameName.trim()) return
 
-    try {
-      setIsLoading(true)
+        // Verificar se já existe um jogo com o mesmo nome (case-insensitive)
+        const existingGame = games.find((game) => game.name.toLowerCase().trim() === newGameName.toLowerCase().trim())
 
-      // Adicionar voto na tabela votes
-      const { error: voteError } = await supabase.from("votes").insert({ user_id: userId, game_id: gameId })
+        if (existingGame) {
+            alert(`O jogo "${existingGame.name}" já foi sugerido!`)
+            return
+        }
 
-      if (voteError) throw voteError
+        try {
+            setIsLoading(true)
 
-      // Incrementar contador de votos do jogo
-      const { error: updateError } = await supabase.rpc("increment_votes", { game_id: gameId })
+            const { error } = await supabase.from("games").insert({
+                name: newGameName.trim(),
+                genre: "Sugestão",
+                votes: 0,
+            })
 
-      if (updateError) throw updateError
+            if (error) throw error
 
-      console.log("Voto registrado para jogo:", gameId)
-      await loadData()
-    } catch (error) {
-      console.error("Erro ao votar:", error)
-      alert("Erro ao registrar voto")
-    } finally {
-      setIsLoading(false)
+            setNewGameName("")
+            setShowSuggestionForm(false)
+            console.log("Jogo adicionado:", newGameName)
+            await loadData()
+        } catch (error) {
+            console.error("Erro ao adicionar jogo:", error)
+            alert("Erro ao adicionar jogo")
+        } finally {
+            setIsLoading(false)
+        }
     }
-  }
 
-  const handleSuggestGame = async () => {
-    if (!newGameName.trim()) return
-
-    try {
-      setIsLoading(true)
-
-      const { error } = await supabase.from("games").insert({
-        name: newGameName.trim(),
-        genre: "Sugestão",
-        votes: 0,
-      })
-
-      if (error) throw error
-
-      setNewGameName("")
-      setShowSuggestionForm(false)
-      console.log("Jogo adicionado:", newGameName)
-      await loadData()
-    } catch (error) {
-      console.error("Erro ao adicionar jogo:", error)
-      alert("Erro ao adicionar jogo")
-    } finally {
-      setIsLoading(false)
+    // Admin functions
+    const handleAdminLogin = () => {
+        if (adminPassword === ADMIN_PASSWORD) {
+            setIsAdminMode(true)
+            setShowAdminLogin(false)
+            setAdminPassword("")
+        } else {
+            alert("Senha incorreta!")
+        }
     }
-  }
 
-  // Admin functions
-  const handleAdminLogin = () => {
-    if (adminPassword === ADMIN_PASSWORD) {
-      setIsAdminMode(true)
-      setShowAdminLogin(false)
-      setAdminPassword("")
-    } else {
-      alert("Senha incorreta!")
+    const handleAdminLogout = () => {
+        setIsAdminMode(false)
     }
-  }
 
-  const handleAdminLogout = () => {
-    setIsAdminMode(false)
-  }
+    const handleRemoveGame = async (gameId: number) => {
+        if (!confirm("Tem certeza que deseja remover este jogo?")) return
 
-  const handleRemoveGame = async (gameId: number) => {
-    if (!confirm("Tem certeza que deseja remover este jogo?")) return
+        try {
+            setIsLoading(true)
 
-    try {
-      setIsLoading(true)
+            // Remover votos do jogo
+            await supabase.from("votes").delete().eq("game_id", gameId)
 
-      // Remover votos do jogo
-      await supabase.from("votes").delete().eq("game_id", gameId)
+            // Remover jogo
+            const { error } = await supabase.from("games").delete().eq("id", gameId)
 
-      // Remover jogo
-      const { error } = await supabase.from("games").delete().eq("id", gameId)
+            if (error) throw error
 
-      if (error) throw error
-
-      console.log("Jogo removido:", gameId)
-      await loadData()
-    } catch (error) {
-      console.error("Erro ao remover jogo:", error)
-      alert("Erro ao remover jogo")
-    } finally {
-      setIsLoading(false)
+            console.log("Jogo removido:", gameId)
+            await loadData()
+        } catch (error) {
+            console.error("Erro ao remover jogo:", error)
+            alert("Erro ao remover jogo")
+        } finally {
+            setIsLoading(false)
+        }
     }
-  }
 
-  const handleResetAllVotes = async () => {
-    if (!confirm("Tem certeza que deseja resetar todos os votos?")) return
+    const handleResetAllVotes = async () => {
+        if (!confirm("Tem certeza que deseja resetar todos os votos?")) return
 
-    try {
-      setIsLoading(true)
+        try {
+            setIsLoading(true)
 
-      // Remover todos os votos
-      await supabase.from("votes").delete().neq("id", 0)
+            // Remover todos os votos
+            await supabase.from("votes").delete().neq("id", 0)
 
-      // Resetar contador de votos de todos os jogos
-      const { error } = await supabase.from("games").update({ votes: 0 }).neq("id", 0)
+            // Resetar contador de votos de todos os jogos
+            const { error } = await supabase.from("games").update({ votes: 0 }).neq("id", 0)
 
-      if (error) throw error
+            if (error) throw error
 
-      console.log("Todos os votos resetados")
-      await loadData()
-    } catch (error) {
-      console.error("Erro ao resetar votos:", error)
-      alert("Erro ao resetar votos")
-    } finally {
-      setIsLoading(false)
+            console.log("Todos os votos resetados")
+            await loadData()
+        } catch (error) {
+            console.error("Erro ao resetar votos:", error)
+            alert("Erro ao resetar votos")
+        } finally {
+            setIsLoading(false)
+        }
     }
-  }
 
-  const handleClearAllGames = async () => {
-    if (!confirm("Tem certeza que deseja remover TODOS os jogos?")) return
+    const handleClearAllGames = async () => {
+        if (!confirm("Tem certeza que deseja remover TODOS os jogos?")) return
 
-    try {
-      setIsLoading(true)
+        try {
+            setIsLoading(true)
 
-      // Remover todos os votos
-      await supabase.from("votes").delete().neq("id", 0)
+            // Remover todos os votos
+            await supabase.from("votes").delete().neq("id", 0)
 
-      // Remover todos os jogos
-      const { error } = await supabase.from("games").delete().neq("id", 0)
+            // Remover todos os jogos
+            const { error } = await supabase.from("games").delete().neq("id", 0)
 
-      if (error) throw error
+            if (error) throw error
 
-      console.log("Todos os jogos removidos")
-      await loadData()
-    } catch (error) {
-      console.error("Erro ao limpar jogos:", error)
-      alert("Erro ao limpar jogos")
-    } finally {
-      setIsLoading(false)
+            console.log("Todos os jogos removidos")
+            await loadData()
+        } catch (error) {
+            console.error("Erro ao limpar jogos:", error)
+            alert("Erro ao limpar jogos")
+        } finally {
+            setIsLoading(false)
+        }
     }
-  }
 
-  const totalVotes = games.reduce((sum, game) => sum + game.votes, 0)
+    const totalVotes = games.reduce((sum, game) => sum + game.votes, 0)
 
-  // Reset página quando jogos mudarem drasticamente
-  useEffect(() => {
-    const maxPage = Math.ceil(games.length / itemsPerPage)
-    if (currentPage > maxPage && maxPage > 0) {
-      setCurrentPage(maxPage)
-    }
-  }, [games.length, itemsPerPage, currentPage])
+    // Filtrar jogos baseado na busca
+    const filteredGames = games.filter(
+        (game) =>
+            game.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            game.genre.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Admin Panel */}
-        <div className="mb-6">
-          {!isAdminMode ? (
-            <div className="flex justify-between items-center">
-              <Button onClick={loadData} variant="ghost" size="sm" className="text-gray-500" disabled={isLoading}>
-                <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
-                Atualizar
-              </Button>
-              {!showAdminLogin ? (
-                <Button onClick={() => setShowAdminLogin(true)} variant="ghost" size="sm" className="text-gray-500">
-                  <Settings className="h-4 w-4 mr-1" />
-                  Admin
-                </Button>
-              ) : (
-                <Card className="w-80">
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      <Label htmlFor="adminPassword" className="text-sm font-medium">
-                        Senha do Administrador
-                      </Label>
-                      <Input
-                        id="adminPassword"
-                        type="password"
-                        value={adminPassword}
-                        onChange={(e) => setAdminPassword(e.target.value)}
-                        placeholder="Digite a senha"
-                        onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
-                      />
-                      <div className="flex gap-2">
-                        <Button onClick={handleAdminLogin} size="sm" className="flex-1">
-                          Entrar
-                        </Button>
-                        <Button onClick={() => setShowAdminLogin(false)} variant="outline" size="sm" className="flex-1">
-                          Cancelar
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          ) : (
-            <Card className="bg-red-50 border-red-200">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Settings className="h-5 w-5 text-red-600" />
-                    <span className="font-medium text-red-800">Modo Administrador Ativo</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button onClick={handleResetAllVotes} variant="outline" size="sm" disabled={isLoading}>
-                      <RotateCcw className="h-4 w-4 mr-1" />
-                      Resetar Votos
-                    </Button>
-                    <Button onClick={handleClearAllGames} variant="outline" size="sm" disabled={isLoading}>
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Limpar Tudo
-                    </Button>
-                    <Button onClick={handleAdminLogout} variant="ghost" size="sm">
-                      <EyeOff className="h-4 w-4 mr-1" />
-                      Sair
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+    // Reset página quando busca mudar
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchTerm])
 
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-light text-gray-900 mb-2">Votação de Jogos</h1>
-          <p className="text-gray-600">Escolha qual jogo deve ser jogado na próxima stream</p>
+    // Reset página quando jogos mudarem drasticamente
+    useEffect(() => {
+        const maxPage = Math.ceil(filteredGames.length / itemsPerPage)
+        if (currentPage > maxPage && maxPage > 0) {
+            setCurrentPage(maxPage)
+        }
+    }, [filteredGames.length, itemsPerPage, currentPage])
 
-          {/* Stats */}
-          <div className="mt-4 flex justify-center gap-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-blue-600" />
-                <span className="text-blue-800 text-sm font-medium">
-                  {totalUsers} {totalUsers === 1 ? "pessoa votou" : "pessoas votaram"}
-                </span>
-              </div>
-            </div>
-
-            {userVotes.length > 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2">
-                <span className="text-green-800 text-sm font-medium">
-                  ✓ Você votou em {userVotes.length} jogo{userVotes.length > 1 ? "s" : ""}
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-2 text-xs text-gray-500">
-            Atualização em tempo real • {games.length} jogos • {totalVotes} votos totais
-          </div>
-        </div>
-
-        {/* Games List com Paginação */}
-        <div className="space-y-4 mb-12">
-          {/* Controles de Paginação - Topo */}
-          {games.length > 0 && (
-            <Card className="border border-gray-200">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <Label className="text-sm text-gray-600">Itens por página:</Label>
-                      <select
-                        value={itemsPerPage}
-                        onChange={(e) => {
-                          setItemsPerPage(Number(e.target.value))
-                          setCurrentPage(1)
-                        }}
-                        className="border border-gray-300 rounded px-2 py-1 text-sm"
-                      >
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={20}>20</option>
-                        <option value={50}>50</option>
-                      </select>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Mostrando {Math.min((currentPage - 1) * itemsPerPage + 1, games.length)} -{" "}
-                      {Math.min(currentPage * itemsPerPage, games.length)} de {games.length} jogos
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                      disabled={currentPage === 1}
-                      variant="outline"
-                      size="sm"
-                    >
-                      ← Anterior
-                    </Button>
-
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.ceil(games.length / itemsPerPage) }, (_, i) => i + 1)
-                        .filter((page) => {
-                          const totalPages = Math.ceil(games.length / itemsPerPage)
-                          if (totalPages <= 7) return true
-                          if (page === 1 || page === totalPages) return true
-                          if (Math.abs(page - currentPage) <= 1) return true
-                          return false
-                        })
-                        .map((page, index, array) => {
-                          const prevPage = array[index - 1]
-                          const showEllipsis = prevPage && page - prevPage > 1
-
-                          return (
-                            <div key={page} className="flex items-center">
-                              {showEllipsis && <span className="px-2 text-gray-400">...</span>}
-                              <Button
-                                onClick={() => setCurrentPage(page)}
-                                variant={currentPage === page ? "default" : "outline"}
-                                size="sm"
-                                className="min-w-[32px] h-8"
-                              >
-                                {page}
-                              </Button>
-                            </div>
-                          )
-                        })}
-                    </div>
-
-                    <Button
-                      onClick={() => setCurrentPage(Math.min(Math.ceil(games.length / itemsPerPage), currentPage + 1))}
-                      disabled={currentPage === Math.ceil(games.length / itemsPerPage)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Próxima →
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Lista de Jogos Paginada */}
-          {games.length === 0 ? (
-            <Card className="border border-gray-200">
-              <CardContent className="p-12 text-center">
-                <p className="text-gray-500">Nenhum jogo disponível para votação.</p>
-                <p className="text-sm text-gray-400 mt-2">Seja o primeiro a sugerir um jogo!</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              {games.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((game, index) => {
-                const hasVotedThisGame = userVotes.includes(game.id)
-                const percentage = totalVotes > 0 ? Math.round((game.votes / totalVotes) * 100) : 0
-                const globalIndex = (currentPage - 1) * itemsPerPage + index + 1
-
-                return (
-                  <Card key={game.id} className="border border-gray-200">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="text-sm font-medium text-gray-500">#{globalIndex}</span>
-                            <h3 className="text-lg font-medium text-gray-900">{game.name}</h3>
-                            <Badge variant="secondary" className="text-xs">
-                              {game.genre}
-                            </Badge>
-                            {percentage > 0 && (
-                              <Badge variant="outline" className="text-xs">
-                                {percentage}%
-                              </Badge>
-                            )}
-                          </div>
-                          {/* Barra de progresso */}
-                          {totalVotes > 0 && (
-                            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                              <div
-                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${percentage}%` }}
-                              ></div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 ml-4">
-                          <div className="text-right">
-                            <div className="text-2xl font-light text-gray-900">{game.votes}</div>
-                            <div className="text-sm text-gray-500">votos</div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => handleVote(game.id)}
-                              disabled={hasVotedThisGame || isLoading}
-                              variant={hasVotedThisGame ? "secondary" : "default"}
-                              className="min-w-[80px]"
-                            >
-                              {hasVotedThisGame ? "✓ Votado" : "Votar"}
+    return (
+        <div className="min-h-screen bg-gray-50 p-6">
+            <div className="max-w-4xl mx-auto">
+                {/* Admin Panel */}
+                <div className="mb-6">
+                    {!isAdminMode ? (
+                        <div className="flex justify-between items-center">
+                            <Button onClick={loadData} variant="ghost" size="sm" className="text-gray-500" disabled={isLoading}>
+                                <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
+                                Atualizar
                             </Button>
-                            {isAdminMode && (
-                              <Button
-                                onClick={() => handleRemoveGame(game.id)}
-                                variant="outline"
-                                size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                disabled={isLoading}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                            {!showAdminLogin ? (
+                                <Button onClick={() => setShowAdminLogin(true)} variant="ghost" size="sm" className="text-gray-500">
+                                    <Settings className="h-4 w-4 mr-1" />
+                                    Admin
+                                </Button>
+                            ) : (
+                                <Card className="w-80">
+                                    <CardContent className="p-4">
+                                        <div className="space-y-3">
+                                            <Label htmlFor="adminPassword" className="text-sm font-medium">
+                                                Senha do Administrador
+                                            </Label>
+                                            <Input
+                                                id="adminPassword"
+                                                type="password"
+                                                value={adminPassword}
+                                                onChange={(e) => setAdminPassword(e.target.value)}
+                                                placeholder="Digite a senha"
+                                                onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
+                                            />
+                                            <div className="flex gap-2">
+                                                <Button onClick={handleAdminLogin} size="sm" className="flex-1">
+                                                    Entrar
+                                                </Button>
+                                                <Button onClick={() => setShowAdminLogin(false)} variant="outline" size="sm" className="flex-1">
+                                                    Cancelar
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             )}
-                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
+                    ) : (
+                        <Card className="bg-red-50 border-red-200">
+                            <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Settings className="h-5 w-5 text-red-600" />
+                                        <span className="font-medium text-red-800">Modo Administrador Ativo</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button onClick={handleResetAllVotes} variant="outline" size="sm" disabled={isLoading}>
+                                            <RotateCcw className="h-4 w-4 mr-1" />
+                                            Resetar Votos
+                                        </Button>
+                                        <Button onClick={handleClearAllGames} variant="outline" size="sm" disabled={isLoading}>
+                                            <Trash2 className="h-4 w-4 mr-1" />
+                                            Limpar Tudo
+                                        </Button>
+                                        <Button onClick={handleAdminLogout} variant="ghost" size="sm">
+                                            <EyeOff className="h-4 w-4 mr-1" />
+                                            Sair
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
 
-              {/* Controles de Paginação - Rodapé */}
-              {Math.ceil(games.length / itemsPerPage) > 1 && (
-                <Card className="border border-gray-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <Button
-                        onClick={() => setCurrentPage(1)}
-                        disabled={currentPage === 1}
-                        variant="outline"
-                        size="sm"
-                      >
-                        ⏮ Primeira
-                      </Button>
+                {/* Header */}
+                <div className="text-center mb-12">
+                    <h1 className="text-3xl font-light text-gray-900 mb-2">Votação de Jogos</h1>
+                    <p className="text-gray-600">Escolha qual jogo deve ser jogado na próxima stream</p>
 
-                      <Button
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                        disabled={currentPage === 1}
-                        variant="outline"
-                        size="sm"
-                      >
-                        ← Anterior
-                      </Button>
+                    {/* Stats */}
+                    <div className="mt-4 flex justify-center gap-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+                            <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-blue-600" />
+                                <span className="text-blue-800 text-sm font-medium">
+                                    {totalUsers} {totalUsers === 1 ? "pessoa votou" : "pessoas votaram"}
+                                </span>
+                            </div>
+                        </div>
 
-                      <div className="flex items-center gap-1 mx-4">
-                        <span className="text-sm text-gray-600">
-                          Página {currentPage} de {Math.ceil(games.length / itemsPerPage)}
-                        </span>
-                      </div>
-
-                      <Button
-                        onClick={() =>
-                          setCurrentPage(Math.min(Math.ceil(games.length / itemsPerPage), currentPage + 1))
-                        }
-                        disabled={currentPage === Math.ceil(games.length / itemsPerPage)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Próxima →
-                      </Button>
-
-                      <Button
-                        onClick={() => setCurrentPage(Math.ceil(games.length / itemsPerPage))}
-                        disabled={currentPage === Math.ceil(games.length / itemsPerPage)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Última ⏭
-                      </Button>
+                        {userVotes.length > 0 && (
+                            <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2">
+                                <span className="text-green-800 text-sm font-medium">
+                                    ✓ Você votou em {userVotes.length} jogo{userVotes.length > 1 ? "s" : ""}
+                                </span>
+                            </div>
+                        )}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
-        </div>
 
-        {/* Suggestion Section */}
-        <Card className="border border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-lg font-medium text-gray-900">
-              {isAdminMode ? "Adicionar Novo Jogo" : "Sugerir Novo Jogo"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!showSuggestionForm ? (
-              <Button
-                onClick={() => setShowSuggestionForm(true)}
-                variant="outline"
-                className="w-full"
-                disabled={isLoading}
-              >
-                + Adicionar Jogo
-              </Button>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="gameName" className="text-sm font-medium text-gray-700">
-                    Nome do Jogo
-                  </Label>
-                  <Input
-                    id="gameName"
-                    value={newGameName}
-                    onChange={(e) => setNewGameName(e.target.value)}
-                    placeholder="Digite o nome do jogo"
-                    className="mt-1"
-                    disabled={isLoading}
-                  />
+                    <div className="mt-2 text-xs text-gray-500">
+                        Atualização em tempo real • {games.length} jogos • {totalVotes} votos totais
+                    </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button onClick={handleSuggestGame} disabled={!newGameName.trim() || isLoading} className="flex-1">
-                    {isAdminMode ? "Adicionar" : "Sugerir"}
-                  </Button>
-                  <Button
-                    onClick={() => setShowSuggestionForm(false)}
-                    variant="outline"
-                    className="flex-1"
-                    disabled={isLoading}
-                  >
-                    Cancelar
-                  </Button>
+
+                {/* Search Bar */}
+                <Card className="border border-gray-200 mb-4">
+                    <CardContent className="p-4">
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
+                                </svg>
+                            </div>
+                            <Input
+                                type="text"
+                                placeholder="Buscar jogos por nome ou gênero..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-10 pr-4"
+                            />
+                            {searchTerm && (
+                                <Button
+                                    onClick={() => setSearchTerm("")}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                >
+                                    ✕
+                                </Button>
+                            )}
+                        </div>
+                        {searchTerm && (
+                            <div className="mt-2 text-sm text-gray-600">
+                                {filteredGames.length} jogo{filteredGames.length !== 1 ? "s" : ""} encontrado
+                                {filteredGames.length !== 1 ? "s" : ""} para "{searchTerm}"
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Games List com Paginação */}
+                <div className="space-y-4 mb-12">
+                    {/* Controles de Paginação - Topo */}
+                    {filteredGames.length > 0 && (
+                        <Card className="border border-gray-200">
+                            <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <Label className="text-sm text-gray-600">Itens por página:</Label>
+                                            <select
+                                                value={itemsPerPage}
+                                                onChange={(e) => {
+                                                    setItemsPerPage(Number(e.target.value))
+                                                    setCurrentPage(1)
+                                                }}
+                                                className="border border-gray-300 rounded px-2 py-1 text-sm"
+                                            >
+                                                <option value={5}>5</option>
+                                                <option value={10}>10</option>
+                                                <option value={20}>20</option>
+                                                <option value={50}>50</option>
+                                            </select>
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Mostrando {Math.min((currentPage - 1) * itemsPerPage + 1, filteredGames.length)} -{" "}
+                                            {Math.min(currentPage * itemsPerPage, filteredGames.length)} de {filteredGames.length} jogos
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                            disabled={currentPage === 1}
+                                            variant="outline"
+                                            size="sm"
+                                        >
+                                            ← Anterior
+                                        </Button>
+
+                                        <div className="flex items-center gap-1">
+                                            {Array.from({ length: Math.ceil(filteredGames.length / itemsPerPage) }, (_, i) => i + 1)
+                                                .filter((page) => {
+                                                    const totalPages = Math.ceil(filteredGames.length / itemsPerPage)
+                                                    if (totalPages <= 7) return true
+                                                    if (page === 1 || page === totalPages) return true
+                                                    if (Math.abs(page - currentPage) <= 1) return true
+                                                    return false
+                                                })
+                                                .map((page, index, array) => {
+                                                    const prevPage = array[index - 1]
+                                                    const showEllipsis = prevPage && page - prevPage > 1
+
+                                                    return (
+                                                        <div key={page} className="flex items-center">
+                                                            {showEllipsis && <span className="px-2 text-gray-400">...</span>}
+                                                            <Button
+                                                                onClick={() => setCurrentPage(page)}
+                                                                variant={currentPage === page ? "default" : "outline"}
+                                                                size="sm"
+                                                                className="min-w-[32px] h-8"
+                                                            >
+                                                                {page}
+                                                            </Button>
+                                                        </div>
+                                                    )
+                                                })}
+                                        </div>
+
+                                        <Button
+                                            onClick={() =>
+                                                setCurrentPage(Math.min(Math.ceil(filteredGames.length / itemsPerPage), currentPage + 1))
+                                            }
+                                            disabled={currentPage === Math.ceil(filteredGames.length / itemsPerPage)}
+                                            variant="outline"
+                                            size="sm"
+                                        >
+                                            Próxima →
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Lista de Jogos Paginada */}
+                    {filteredGames.length === 0 ? (
+                        <Card className="border border-gray-200">
+                            <CardContent className="p-12 text-center">
+                                <p className="text-gray-500">Nenhum jogo disponível para votação.</p>
+                                <p className="text-sm text-gray-400 mt-2">Seja o primeiro a sugerir um jogo!</p>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <>
+                            {filteredGames.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((game, index) => {
+                                const hasVotedThisGame = userVotes.includes(game.id)
+                                const percentage = totalVotes > 0 ? Math.round((game.votes / totalVotes) * 100) : 0
+                                const globalIndex = (currentPage - 1) * itemsPerPage + index + 1
+
+                                return (
+                                    <Card key={game.id} className="border border-gray-200">
+                                        <CardContent className="p-6">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <span className="text-sm font-medium text-gray-500">#{globalIndex}</span>
+                                                        <h3 className="text-lg font-medium text-gray-900">{game.name}</h3>
+                                                        <Badge variant="secondary" className="text-xs">
+                                                            {game.genre}
+                                                        </Badge>
+                                                        {percentage > 0 && (
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {percentage}%
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                    {/* Barra de progresso */}
+                                                    {totalVotes > 0 && (
+                                                        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                                            <div
+                                                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                                                style={{ width: `${percentage}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-4 ml-4">
+                                                    <div className="text-right">
+                                                        <div className="text-2xl font-light text-gray-900">{game.votes}</div>
+                                                        <div className="text-sm text-gray-500">votos</div>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            onClick={() => handleVote(game.id)}
+                                                            disabled={hasVotedThisGame || isLoading}
+                                                            variant={hasVotedThisGame ? "secondary" : "default"}
+                                                            className="min-w-[80px]"
+                                                        >
+                                                            {hasVotedThisGame ? "✓ Votado" : "Votar"}
+                                                        </Button>
+                                                        {isAdminMode && (
+                                                            <Button
+                                                                onClick={() => handleRemoveGame(game.id)}
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                                disabled={isLoading}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )
+                            })}
+
+                            {/* Controles de Paginação - Rodapé */}
+                            {Math.ceil(filteredGames.length / itemsPerPage) > 1 && (
+                                <Card className="border border-gray-200">
+                                    <CardContent className="p-4">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <Button
+                                                onClick={() => setCurrentPage(1)}
+                                                disabled={currentPage === 1}
+                                                variant="outline"
+                                                size="sm"
+                                            >
+                                                ⏮ Primeira
+                                            </Button>
+
+                                            <Button
+                                                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                                disabled={currentPage === 1}
+                                                variant="outline"
+                                                size="sm"
+                                            >
+                                                ← Anterior
+                                            </Button>
+
+                                            <div className="flex items-center gap-1 mx-4">
+                                                <span className="text-sm text-gray-600">
+                                                    Página {currentPage} de {Math.ceil(filteredGames.length / itemsPerPage)}
+                                                </span>
+                                            </div>
+
+                                            <Button
+                                                onClick={() =>
+                                                    setCurrentPage(Math.min(Math.ceil(filteredGames.length / itemsPerPage), currentPage + 1))
+                                                }
+                                                disabled={currentPage === Math.ceil(filteredGames.length / itemsPerPage)}
+                                                variant="outline"
+                                                size="sm"
+                                            >
+                                                Próxima →
+                                            </Button>
+
+                                            <Button
+                                                onClick={() => setCurrentPage(Math.ceil(filteredGames.length / itemsPerPage))}
+                                                disabled={currentPage === Math.ceil(filteredGames.length / itemsPerPage)}
+                                                variant="outline"
+                                                size="sm"
+                                            >
+                                                Última ⏭
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </>
+                    )}
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  )
+
+                {/* Suggestion Section */}
+                <Card className="border border-gray-200">
+                    <CardHeader>
+                        <CardTitle className="text-lg font-medium text-gray-900">
+                            {isAdminMode ? "Adicionar Novo Jogo" : "Sugerir Novo Jogo"}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {!showSuggestionForm ? (
+                            <Button
+                                onClick={() => setShowSuggestionForm(true)}
+                                variant="outline"
+                                className="w-full"
+                                disabled={isLoading}
+                            >
+                                + Adicionar Jogo
+                            </Button>
+                        ) : (
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="gameName" className="text-sm font-medium text-gray-700">
+                                        Nome do Jogo
+                                    </Label>
+                                    <Input
+                                        id="gameName"
+                                        value={newGameName}
+                                        onChange={(e) => setNewGameName(e.target.value)}
+                                        placeholder="Digite o nome do jogo"
+                                        className="mt-1"
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button onClick={handleSuggestGame} disabled={!newGameName.trim() || isLoading} className="flex-1">
+                                        {isAdminMode ? "Adicionar" : "Sugerir"}
+                                    </Button>
+                                    <Button
+                                        onClick={() => setShowSuggestionForm(false)}
+                                        variant="outline"
+                                        className="flex-1"
+                                        disabled={isLoading}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    )
 }
