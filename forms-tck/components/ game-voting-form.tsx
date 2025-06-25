@@ -25,8 +25,6 @@ export default function GameVotingForm() {
     { id: 6, name: "Elden Ring", genre: "Souls-like", votes: 22 },
   ])
 
-  const [hasVoted, setHasVoted] = useState(false)
-  const [votedGameId, setVotedGameId] = useState<number | null>(null)
   const [newGameName, setNewGameName] = useState("")
   const [showSuggestionForm, setShowSuggestionForm] = useState(false)
 
@@ -35,14 +33,10 @@ export default function GameVotingForm() {
   const [adminPassword, setAdminPassword] = useState("")
   const [showAdminLogin, setShowAdminLogin] = useState(false)
 
-  const ADMIN_PASSWORD = "tck123forever"
+  const ADMIN_PASSWORD = "tckforever123omelhor" // Em produção, isso deveria vir de variável de ambiente
 
   const handleVote = (gameId: number) => {
-    if (hasVoted) return
-
     setGames(games.map((game) => (game.id === gameId ? { ...game, votes: game.votes + 1 } : game)))
-    setHasVoted(true)
-    setVotedGameId(gameId)
   }
 
   const handleSuggestGame = () => {
@@ -52,16 +46,10 @@ export default function GameVotingForm() {
       id: games.length + 1,
       name: newGameName,
       genre: "Sugestão",
-      votes: hasVoted ? 0 : 1,
+      votes: 0,
     }
 
     setGames([...games, newGame])
-
-    if (!hasVoted) {
-      setHasVoted(true)
-      setVotedGameId(newGame.id)
-    }
-
     setNewGameName("")
     setShowSuggestionForm(false)
   }
@@ -84,28 +72,18 @@ export default function GameVotingForm() {
   const handleRemoveGame = (gameId: number) => {
     if (confirm("Tem certeza que deseja remover este jogo?")) {
       setGames(games.filter((game) => game.id !== gameId))
-
-      // Se o jogo removido era o que o usuário votou, resetar o voto
-      if (votedGameId === gameId) {
-        setHasVoted(false)
-        setVotedGameId(null)
-      }
     }
   }
 
   const handleResetAllVotes = () => {
     if (confirm("Tem certeza que deseja resetar todos os votos?")) {
       setGames(games.map((game) => ({ ...game, votes: 0 })))
-      setHasVoted(false)
-      setVotedGameId(null)
     }
   }
 
   const handleClearAllGames = () => {
     if (confirm("Tem certeza que deseja remover TODOS os jogos?")) {
       setGames([])
-      setHasVoted(false)
-      setVotedGameId(null)
     }
   }
 
@@ -183,11 +161,6 @@ export default function GameVotingForm() {
         <div className="text-center mb-12">
           <h1 className="text-3xl font-light text-gray-900 mb-2">Votação de Jogos</h1>
           <p className="text-gray-600">Escolha qual jogo deve ser jogado na próxima stream</p>
-          {hasVoted && (
-            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-800 text-sm">✓ Você já votou! Seu voto foi registrado.</p>
-            </div>
-          )}
         </div>
 
         {/* Games List */}
@@ -197,13 +170,12 @@ export default function GameVotingForm() {
               <CardContent className="p-12 text-center">
                 <p className="text-gray-500">Nenhum jogo disponível para votação.</p>
                 {isAdminMode && (
-                  <p>Vote no seu jogo favorito: &quot;Call of Duty&quot;, &quot;GTA&quot;, &quot;Minecraft&quot;</p>
+                  <p className="text-sm text-gray-400 mt-2">Use a seção "Sugerir Novo Jogo" para adicionar jogos.</p>
                 )}
               </CardContent>
             </Card>
           ) : (
             sortedGames.map((game, index) => {
-              const isThisGameVoted = votedGameId === game.id
               return (
                 <Card key={game.id} className="border border-gray-200">
                   <CardContent className="p-6">
@@ -223,13 +195,8 @@ export default function GameVotingForm() {
                           <div className="text-sm text-gray-500">votos</div>
                         </div>
                         <div className="flex gap-2">
-                          <Button
-                            onClick={() => handleVote(game.id)}
-                            disabled={hasVoted}
-                            variant={isThisGameVoted ? "secondary" : hasVoted ? "outline" : "default"}
-                            className="min-w-[80px]"
-                          >
-                            {isThisGameVoted ? "✓ Seu Voto" : hasVoted ? "Votado" : "Votar"}
+                          <Button onClick={() => handleVote(game.id)} className="min-w-[80px]">
+                            Votar
                           </Button>
                           {isAdminMode && (
                             <Button
@@ -257,9 +224,6 @@ export default function GameVotingForm() {
             <CardTitle className="text-lg font-medium text-gray-900">
               {isAdminMode ? "Adicionar Novo Jogo" : "Sugerir Novo Jogo"}
             </CardTitle>
-            {hasVoted && !isAdminMode && (
-              <p className="text-sm text-gray-600">Você pode sugerir jogos mesmo após ter votado</p>
-            )}
           </CardHeader>
           <CardContent>
             {!showSuggestionForm ? (
