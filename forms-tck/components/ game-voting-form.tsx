@@ -41,7 +41,7 @@ export default function GameVotingForm() {
     // Estado de busca
     const [searchTerm, setSearchTerm] = useState("")
 
-    const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin123"
+    const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
 
     // Carregar dados do Supabase
     const loadData = useCallback(async () => {
