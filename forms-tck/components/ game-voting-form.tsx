@@ -1,0 +1,298 @@
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { Trash2, Settings, RotateCcw, EyeOff } from "lucide-react"
+
+interface Game {
+  id: number
+  name: string
+  genre: string
+  votes: number
+}
+
+export default function GameVotingForm() {
+  const [games, setGames] = useState<Game[]>([
+    { id: 1, name: "The Legend of Zelda: Tears of the Kingdom", genre: "Aventura", votes: 45 },
+    { id: 2, name: "Baldur's Gate 3", genre: "RPG", votes: 38 },
+    { id: 3, name: "Spider-Man 2", genre: "Ação", votes: 32 },
+    { id: 4, name: "Hogwarts Legacy", genre: "RPG", votes: 28 },
+    { id: 5, name: "Cyberpunk 2077", genre: "RPG", votes: 25 },
+    { id: 6, name: "Elden Ring", genre: "Souls-like", votes: 22 },
+  ])
+
+  const [hasVoted, setHasVoted] = useState(false)
+  const [votedGameId, setVotedGameId] = useState<number | null>(null)
+  const [newGameName, setNewGameName] = useState("")
+  const [showSuggestionForm, setShowSuggestionForm] = useState(false)
+
+  // Admin states
+  const [isAdminMode, setIsAdminMode] = useState(false)
+  const [adminPassword, setAdminPassword] = useState("")
+  const [showAdminLogin, setShowAdminLogin] = useState(false)
+
+  const ADMIN_PASSWORD = "tck123forever"
+
+  const handleVote = (gameId: number) => {
+    if (hasVoted) return
+
+    setGames(games.map((game) => (game.id === gameId ? { ...game, votes: game.votes + 1 } : game)))
+    setHasVoted(true)
+    setVotedGameId(gameId)
+  }
+
+  const handleSuggestGame = () => {
+    if (!newGameName.trim()) return
+
+    const newGame: Game = {
+      id: games.length + 1,
+      name: newGameName,
+      genre: "Sugestão",
+      votes: hasVoted ? 0 : 1,
+    }
+
+    setGames([...games, newGame])
+
+    if (!hasVoted) {
+      setHasVoted(true)
+      setVotedGameId(newGame.id)
+    }
+
+    setNewGameName("")
+    setShowSuggestionForm(false)
+  }
+
+  // Admin functions
+  const handleAdminLogin = () => {
+    if (adminPassword === ADMIN_PASSWORD) {
+      setIsAdminMode(true)
+      setShowAdminLogin(false)
+      setAdminPassword("")
+    } else {
+      alert("Senha incorreta!")
+    }
+  }
+
+  const handleAdminLogout = () => {
+    setIsAdminMode(false)
+  }
+
+  const handleRemoveGame = (gameId: number) => {
+    if (confirm("Tem certeza que deseja remover este jogo?")) {
+      setGames(games.filter((game) => game.id !== gameId))
+
+      // Se o jogo removido era o que o usuário votou, resetar o voto
+      if (votedGameId === gameId) {
+        setHasVoted(false)
+        setVotedGameId(null)
+      }
+    }
+  }
+
+  const handleResetAllVotes = () => {
+    if (confirm("Tem certeza que deseja resetar todos os votos?")) {
+      setGames(games.map((game) => ({ ...game, votes: 0 })))
+      setHasVoted(false)
+      setVotedGameId(null)
+    }
+  }
+
+  const handleClearAllGames = () => {
+    if (confirm("Tem certeza que deseja remover TODOS os jogos?")) {
+      setGames([])
+      setHasVoted(false)
+      setVotedGameId(null)
+    }
+  }
+
+  const sortedGames = [...games].sort((a, b) => b.votes - a.votes)
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Admin Panel */}
+        <div className="mb-6">
+          {!isAdminMode ? (
+            <div className="flex justify-end">
+              {!showAdminLogin ? (
+                <Button onClick={() => setShowAdminLogin(true)} variant="ghost" size="sm" className="text-gray-500">
+                  <Settings className="h-4 w-4 mr-1" />
+                  Admin
+                </Button>
+              ) : (
+                <Card className="w-80">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <Label htmlFor="adminPassword" className="text-sm font-medium">
+                        Senha do Administrador
+                      </Label>
+                      <Input
+                        id="adminPassword"
+                        type="password"
+                        value={adminPassword}
+                        onChange={(e) => setAdminPassword(e.target.value)}
+                        placeholder="Digite a senha"
+                        onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
+                      />
+                      <div className="flex gap-2">
+                        <Button onClick={handleAdminLogin} size="sm" className="flex-1">
+                          Entrar
+                        </Button>
+                        <Button onClick={() => setShowAdminLogin(false)} variant="outline" size="sm" className="flex-1">
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : (
+            <Card className="bg-red-50 border-red-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-5 w-5 text-red-600" />
+                    <span className="font-medium text-red-800">Modo Administrador Ativo</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleResetAllVotes} variant="outline" size="sm">
+                      <RotateCcw className="h-4 w-4 mr-1" />
+                      Resetar Votos
+                    </Button>
+                    <Button onClick={handleClearAllGames} variant="outline" size="sm">
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Limpar Tudo
+                    </Button>
+                    <Button onClick={handleAdminLogout} variant="ghost" size="sm">
+                      <EyeOff className="h-4 w-4 mr-1" />
+                      Sair
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-light text-gray-900 mb-2">Votação de Jogos</h1>
+          <p className="text-gray-600">Escolha qual jogo deve ser jogado na próxima stream</p>
+          {hasVoted && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-800 text-sm">✓ Você já votou! Seu voto foi registrado.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Games List */}
+        <div className="space-y-4 mb-12">
+          {sortedGames.length === 0 ? (
+            <Card className="border border-gray-200">
+              <CardContent className="p-12 text-center">
+                <p className="text-gray-500">Nenhum jogo disponível para votação.</p>
+                {isAdminMode && (
+                  <p className="text-sm text-gray-400 mt-2">Use a seção "Sugerir Novo Jogo" para adicionar jogos.</p>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            sortedGames.map((game, index) => {
+              const isThisGameVoted = votedGameId === game.id
+              return (
+                <Card key={game.id} className="border border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
+                          <h3 className="text-lg font-medium text-gray-900">{game.name}</h3>
+                          <Badge variant="secondary" className="text-xs">
+                            {game.genre}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-2xl font-light text-gray-900">{game.votes}</div>
+                          <div className="text-sm text-gray-500">votos</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleVote(game.id)}
+                            disabled={hasVoted}
+                            variant={isThisGameVoted ? "secondary" : hasVoted ? "outline" : "default"}
+                            className="min-w-[80px]"
+                          >
+                            {isThisGameVoted ? "✓ Seu Voto" : hasVoted ? "Votado" : "Votar"}
+                          </Button>
+                          {isAdminMode && (
+                            <Button
+                              onClick={() => handleRemoveGame(game.id)}
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })
+          )}
+        </div>
+
+        {/* Suggestion Section */}
+        <Card className="border border-gray-200">
+          <CardHeader>
+            <CardTitle className="text-lg font-medium text-gray-900">
+              {isAdminMode ? "Adicionar Novo Jogo" : "Sugerir Novo Jogo"}
+            </CardTitle>
+            {hasVoted && !isAdminMode && (
+              <p className="text-sm text-gray-600">Você pode sugerir jogos mesmo após ter votado</p>
+            )}
+          </CardHeader>
+          <CardContent>
+            {!showSuggestionForm ? (
+              <Button onClick={() => setShowSuggestionForm(true)} variant="outline" className="w-full">
+                + Adicionar Jogo
+              </Button>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="gameName" className="text-sm font-medium text-gray-700">
+                    Nome do Jogo
+                  </Label>
+                  <Input
+                    id="gameName"
+                    value={newGameName}
+                    onChange={(e) => setNewGameName(e.target.value)}
+                    placeholder="Digite o nome do jogo"
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleSuggestGame} disabled={!newGameName.trim()} className="flex-1">
+                    {isAdminMode ? "Adicionar" : "Sugerir"}
+                  </Button>
+                  <Button onClick={() => setShowSuggestionForm(false)} variant="outline" className="flex-1">
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
