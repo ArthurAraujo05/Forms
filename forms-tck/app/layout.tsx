@@ -6,7 +6,7 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Votação de Jogos - Live",
+  title: "Votação de Jogos - Stream",
   description: "Vote nos jogos que o streamer deve jogar na próxima live",
 }
 
