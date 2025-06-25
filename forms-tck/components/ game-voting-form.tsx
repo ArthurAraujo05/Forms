@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -25,19 +25,57 @@ export default function GameVotingForm() {
     { id: 6, name: "Elden Ring", genre: "Souls-like", votes: 22 },
   ])
 
-  const [votedGames, setVotedGames] = useState<number[]>([])
+  const [votedGames, setVotedGames] = useState<number[]>([]) // Array dos IDs dos jogos que já votou
   const [newGameName, setNewGameName] = useState("")
   const [showSuggestionForm, setShowSuggestionForm] = useState(false)
 
+  // Admin states
   const [isAdminMode, setIsAdminMode] = useState(false)
   const [adminPassword, setAdminPassword] = useState("")
   const [showAdminLogin, setShowAdminLogin] = useState(false)
 
-  const ADMIN_PASSWORD = "admin123"
+  const ADMIN_PASSWORD =  "tckforever1234fofo"
+
+  // Carregar dados do localStorage quando o componente montar
+  useEffect(() => {
+    const savedGames = localStorage.getItem("voting-games")
+    const savedVotedGames = localStorage.getItem("voting-voted-games")
+
+    if (savedGames) {
+      try {
+        setGames(JSON.parse(savedGames))
+      } catch (error) {
+        console.error("Erro ao carregar jogos salvos:", error)
+      }
+    }
+
+    if (savedVotedGames) {
+      try {
+        setVotedGames(JSON.parse(savedVotedGames))
+      } catch (error) {
+        console.error("Erro ao carregar votos salvos:", error)
+      }
+    }
+  }, [])
+
+  // Salvar jogos no localStorage sempre que a lista mudar
+  useEffect(() => {
+    localStorage.setItem("voting-games", JSON.stringify(games))
+  }, [games])
+
+  // Salvar votos no localStorage sempre que mudar
+  useEffect(() => {
+    localStorage.setItem("voting-voted-games", JSON.stringify(votedGames))
+  }, [votedGames])
 
   const handleVote = (gameId: number) => {
+    // Verifica se já votou neste jogo
     if (votedGames.includes(gameId)) return
+
+    // Adiciona o voto ao jogo
     setGames(games.map((game) => (game.id === gameId ? { ...game, votes: game.votes + 1 } : game)))
+
+    // Adiciona o jogo à lista de jogos votados
     setVotedGames([...votedGames, gameId])
   }
 
@@ -45,7 +83,7 @@ export default function GameVotingForm() {
     if (!newGameName.trim()) return
 
     const newGame: Game = {
-      id: games.length + 1,
+      id: Math.max(...games.map((g) => g.id), 0) + 1, // ID único baseado no maior ID existente
       name: newGameName,
       genre: "Sugestão",
       votes: 0,
@@ -56,6 +94,7 @@ export default function GameVotingForm() {
     setShowSuggestionForm(false)
   }
 
+  // Admin functions
   const handleAdminLogin = () => {
     if (adminPassword === ADMIN_PASSWORD) {
       setIsAdminMode(true)
@@ -73,6 +112,7 @@ export default function GameVotingForm() {
   const handleRemoveGame = (gameId: number) => {
     if (confirm("Tem certeza que deseja remover este jogo?")) {
       setGames(games.filter((game) => game.id !== gameId))
+      // Remove o jogo da lista de votados se estava lá
       setVotedGames(votedGames.filter((id) => id !== gameId))
     }
   }
@@ -80,14 +120,14 @@ export default function GameVotingForm() {
   const handleResetAllVotes = () => {
     if (confirm("Tem certeza que deseja resetar todos os votos?")) {
       setGames(games.map((game) => ({ ...game, votes: 0 })))
-      setVotedGames([])
+      setVotedGames([]) // Limpa a lista de jogos votados
     }
   }
 
   const handleClearAllGames = () => {
     if (confirm("Tem certeza que deseja remover TODOS os jogos?")) {
       setGames([])
-      setVotedGames([])
+      setVotedGames([]) // Limpa a lista de jogos votados
     }
   }
 
@@ -181,9 +221,7 @@ export default function GameVotingForm() {
               <CardContent className="p-12 text-center">
                 <p className="text-gray-500">Nenhum jogo disponível para votação.</p>
                 {isAdminMode && (
-                  <p className="text-sm text-gray-400 mt-2">
-                    Use a seção &quot;Sugerir Novo Jogo&quot; para adicionar jogos.
-                  </p>
+                  <p className="text-sm text-gray-400 mt-2">Use a seção "Sugerir Novo Jogo" para adicionar jogos.</p>
                 )}
               </CardContent>
             </Card>
