@@ -193,6 +193,12 @@ export default function GameVotingForm() {
 
   // Palavras que causam problemas em ambientes de comunidade
   "ex", "julia", "jhulia", "xulia", "cu de burro simulato", "cocosimulator", "hentai simulator", "NUDES MAE DO TCK", "nudes", "nude", "nueds", "nuudes", "nude mae do tck", "n u d e s", "nu d es", "nude(s)", "xVideos",  "Vazadinhos Telegram", "Sua Mãe", "EROME.COM", "EROME.COM", "Erome.com", "Erome", "Erome.com", "Pika roxa", "pika roxa", "pika roxinha", "pika roxinha do tck", "pika roxinha do tckuu", "pika roxinha do tckuu simulator", "tckuu simulator", "tckuu simulator 2023", "tckuu simulator 2024", "tckuu simulator 2025",
+   "cacete mole games", "cacete mole", "cacete mole games", "cacete mole games simulator", "cacete mole games simulator 2023", "cacete mole games simulator 2024", "cacete mole games simulator 2025", "cacete mole games simulator 2026", "cacete mole games simulator 2027", "cacete mole games simulator 2028", "cacete mole games simulator 2029", "cacete mole games simulator 2030", "amor peludo 2", "amor peludo 3", "amor peludo 4", "amor peludo 5", "amor peludo 6", "amor peludo 7", "amor peludo 8", "amor peludo 9", "amor peludo 10", "furry",
+  "love with furry",
+  "love with furry simulator",
+  "furry simulator",
+  "furry porn",
+  "furry hentai",
 ]
 
     const validateGameName = (name: string): { isValid: boolean; reason?: string } => {
