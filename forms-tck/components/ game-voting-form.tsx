@@ -145,63 +145,63 @@ export default function GameVotingForm() {
     }
 
     // Lista de palavras proibidas (case-insensitive)
-   const BLOCKED_WORDS = [
-  // Racismo (BR)
-  "negro", "preto", "crioulo", "criolinha", "macaco", "macaca", "escravo", "preto fedido", "negrinha",
-  "negrume", "urubu", "senzala", "capitão do mato", "samba do crioulo doido",
+    const BLOCKED_WORDS = [
+        // Racismo (BR)
+        "negro", "preto", "crioulo", "criolinha", "macaco", "macaca", "escravo", "preto fedido", "negrinha",
+        "negrume", "urubu", "senzala", "capitão do mato", "samba do crioulo doido",
 
-  // Xenofobia (BR)
-  "paraíba", "baianada", "nordestino burro", "índio preguiçoso", "selvagem", "bugre", "jeca", "matuto", "zé povinho",
+        // Xenofobia (BR)
+        "paraíba", "baianada", "nordestino burro", "índio preguiçoso", "selvagem", "bugre", "jeca", "matuto", "zé povinho",
 
-  // Racismo (EUA)
-  "nigger", "nigga", "coon", "porch monkey", "jiggaboo", "ape", "monkey", "uncle tom", "sambo",
+        // Racismo (EUA)
+        "nigger", "nigga", "coon", "porch monkey", "jiggaboo", "ape", "monkey", "uncle tom", "sambo",
 
-  // Xenofobia (EUA)
-  "spic", "beaner", "wetback", "chink", "gook", "zipperhead", "raghead", "terrorist", "camel jockey",
+        // Xenofobia (EUA)
+        "spic", "beaner", "wetback", "chink", "gook", "zipperhead", "raghead", "terrorist", "camel jockey",
 
-  // LGBTfobia
-  "viado", "veado", "bicha", "bichinha", "sapatão", "dyke", "faggot", "fag", "traveco", "travec", "maricon",
-  "homo", "boiola", "baitola", "frutinha", "viadinho",
+        // LGBTfobia
+        "viado", "veado", "bicha", "bichinha", "sapatão", "dyke", "faggot", "fag", "traveco", "travec", "maricon",
+        "homo", "boiola", "baitola", "frutinha", "viadinho",
 
-  // Conteúdo sexual/adulto
-  "sexo", "sex", "porn", "porno", "pornografia", "hentai", "nude", "naked", "strip", "stripper", "adult",
-  "adulto", "erotic", "erotico", "fetish", "fetiche", "xxx", "18+", "nsfw", "milf", "dilf", "boquete", "chupada",
-  "pussy", "dick", "cock", "fuck", "bunda", "bunduda", "buceta", "pica", "rola", "tesão", "gozada", "mamada",
-  "corno", "corna", "corninho", "pau", "pauzudo", "rabuda", "peituda", "sexy", "orgasm", "orgasmo",
+        // Conteúdo sexual/adulto
+        "sexo", "sex", "porn", "porno", "pornografia", "hentai", "nude", "naked", "strip", "stripper", "adult",
+        "adulto", "erotic", "erotico", "fetish", "fetiche", "xxx", "18+", "nsfw", "milf", "dilf", "boquete", "chupada",
+        "pussy", "dick", "cock", "fuck", "bunda", "bunduda", "buceta", "pica", "rola", "tesão", "gozada", "mamada",
+        "corno", "corna", "corninho", "pau", "pauzudo", "rabuda", "peituda", "sexy", "orgasm", "orgasmo",
 
-  // Drogas
-  "droga", "drogado", "cocaine", "cocaina", "maconha", "marijuana", "crack", "heroína", "heroina", "meth",
-  "metanfetamina", "ácido", "lsd", "êxtase", "ecstasy", "mdma", "baseado", "beck", "erva", "bong", "skank",
+        // Drogas
+        "droga", "drogado", "cocaine", "cocaina", "maconha", "marijuana", "crack", "heroína", "heroina", "meth",
+        "metanfetamina", "ácido", "lsd", "êxtase", "ecstasy", "mdma", "baseado", "beck", "erva", "bong", "skank",
 
-  // Violência, morte, terrorismo
-  "matar", "kill", "death", "morte", "assassinato", "assassino", "terror", "terrorismo", "massacre", "bomba",
-  "tiroteio", "bala perdida", "suicídio", "suicidio", "suicide", "enforcar", "pular da ponte", "tiro na cabeça",
-  "genocida", "estupro", "rape", "estuprador", "abuso sexual", "pedofilia", "pedofilo",
+        // Violência, morte, terrorismo
+        "matar", "kill", "death", "morte", "assassinato", "assassino", "terror", "terrorismo", "massacre", "bomba",
+        "tiroteio", "bala perdida", "suicídio", "suicidio", "suicide", "enforcar", "pular da ponte", "tiro na cabeça",
+        "genocida", "estupro", "rape", "estuprador", "abuso sexual", "pedofilia", "pedofilo",
 
-  // Capacitismo e bullying
-  "retardado", "retard", "aleijado", "cripple", "dumb", "imbecil", "idiota", "mongoloide", "anormal", "babaca",
-  "defeituoso", "doente mental", "atrasado", "tapado", "cego", "surdo", "mudo", "burro", "burra",
+        // Capacitismo e bullying
+        "retardado", "retard", "aleijado", "cripple", "dumb", "imbecil", "idiota", "mongoloide", "anormal", "babaca",
+        "defeituoso", "doente mental", "atrasado", "tapado", "cego", "surdo", "mudo", "burro", "burra",
 
-  // Ofensas gerais / palavrões
-  "merda", "porra", "caralho", "cu", "buceta", "bosta", "puta", "putinha", "viado", "piranha", "vagabunda",
-  "safada", "otário", "otaria", "imbecil", "idiota", "chifrudo", "babaca", "arrombado", "lixo", "nojento",
-  "nojenta", "desgraçado", "maldito", "corno", "fdp", "filho da puta", "pau no cu", "panaca", "escroto",
-  "escrota", "cadela", "desgraça", "crápula", "energúmeno",
+        // Ofensas gerais / palavrões
+        "merda", "porra", "caralho", "cu", "buceta", "bosta", "puta", "putinha", "viado", "piranha", "vagabunda",
+        "safada", "otário", "otaria", "imbecil", "idiota", "chifrudo", "babaca", "arrombado", "lixo", "nojento",
+        "nojenta", "desgraçado", "maldito", "corno", "fdp", "filho da puta", "pau no cu", "panaca", "escroto",
+        "escrota", "cadela", "desgraça", "crápula", "energúmeno",
 
-  // Extremismo político
-  "hitler", "nazismo", "nazi", "fascismo", "fascist", "kkk", "supremacista", "white power", "heil hitler",
+        // Extremismo político
+        "hitler", "nazismo", "nazi", "fascismo", "fascist", "kkk", "supremacista", "white power", "heil hitler",
 
-  // Palavras que causam problemas em ambientes de comunidade
-  "ex", "julia", "jhulia", "xulia", "cu de burro simulato", "cocosimulator", "hentai simulator", "NUDES MAE DO TCK", "nudes", "nude", "nueds", "nuudes", "nude mae do tck", "n u d e s", "nu d es", "nude(s)", "xVideos",  "Vazadinhos Telegram", "Sua Mãe", "EROME.COM", "EROME.COM", "Erome.com", "Erome", "Erome.com", "Pika roxa", "pika roxa", "pika roxinha", "pika roxinha do tck", "pika roxinha do tckuu", "pika roxinha do tckuu simulator", "tckuu simulator", "tckuu simulator 2023", "tckuu simulator 2024", "tckuu simulator 2025",
-   "cacete mole games", "cacete mole", "cacete mole games", "cacete mole games simulator", "cacete mole games simulator 2023", "cacete mole games simulator 2024", "cacete mole games simulator 2025", "cacete mole games simulator 2026", "cacete mole games simulator 2027", "cacete mole games simulator 2028", "cacete mole games simulator 2029", "cacete mole games simulator 2030", "amor peludo 2", "amor peludo 3", "amor peludo 4", "amor peludo 5", "amor peludo 6", "amor peludo 7", "amor peludo 8", "amor peludo 9", "amor peludo 10", "furry",
-  "love with furry",
-  "love with furry simulator",
-  "furry simulator",
-  "furry porn",
-  "furry hentai",
-  "furry hentai simulator",
+        // Palavras que causam problemas em ambientes de comunidade
+        "ex", "julia", "jhulia", "xulia", "cu de burro simulato", "cocosimulator", "hentai simulator", "NUDES MAE DO TCK", "nudes", "nude", "nueds", "nuudes", "nude mae do tck", "n u d e s", "nu d es", "nude(s)", "xVideos", "Vazadinhos Telegram", "Sua Mãe", "EROME.COM", "EROME.COM", "Erome.com", "Erome", "Erome.com", "Pika roxa", "pika roxa", "pika roxinha", "pika roxinha do tck", "pika roxinha do tckuu", "pika roxinha do tckuu simulator", "tckuu simulator", "tckuu simulator 2023", "tckuu simulator 2024", "tckuu simulator 2025",
+        "cacete mole games", "cacete mole", "cacete mole games", "cacete mole games simulator", "cacete mole games simulator 2023", "cacete mole games simulator 2024", "cacete mole games simulator 2025", "cacete mole games simulator 2026", "cacete mole games simulator 2027", "cacete mole games simulator 2028", "cacete mole games simulator 2029", "cacete mole games simulator 2030", "amor peludo 2", "amor peludo 3", "amor peludo 4", "amor peludo 5", "amor peludo 6", "amor peludo 7", "amor peludo 8", "amor peludo 9", "amor peludo 10", "furry",
+        "love with furry",
+        "love with furry simulator",
+        "furry simulator",
+        "furry porn",
+        "furry hentai",
+        "furry hentai simulator",
 
-]
+    ]
 
     const validateGameName = (name: string): { isValid: boolean; reason?: string } => {
         const lowerName = name.toLowerCase().trim()
@@ -386,8 +386,32 @@ export default function GameVotingForm() {
     }, [filteredGames.length, itemsPerPage, currentPage])
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-4xl mx-auto">
+        <div className="min-h-screen relative p-6">
+            {/* Background Images */}
+            <div className="fixed inset-0 z-0">
+                {/* Primeira imagem de fundo */}
+                <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+                    style={{
+                        backgroundImage: `url('/gaming-bg-1.png')`,
+                        filter: "blur(1px)",
+                    }}
+                />
+                {/* Segunda imagem de fundo sobreposta */}
+                <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+                    style={{
+                        backgroundImage: `url('/gaming-bg-2.png')`,
+                        filter: "blur(2px)",
+                        mixBlendMode: "overlay",
+                    }}
+                />
+                {/* Overlay para melhorar legibilidade */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-gray-50/90 to-white/80" />
+            </div>
+
+            {/* Conteúdo principal */}
+            <div className="relative z-10 max-w-4xl mx-auto">
                 {/* Admin Panel */}
                 <div className="mb-6">
                     {!isAdminMode ? (
@@ -430,7 +454,7 @@ export default function GameVotingForm() {
                             )}
                         </div>
                     ) : (
-                        <Card className="bg-red-50 border-red-200">
+                        <Card className="bg-red-50/95 backdrop-blur-sm border-red-200">
                             <CardContent className="p-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
@@ -488,7 +512,7 @@ export default function GameVotingForm() {
                 </div>
 
                 {/* Suggestion Section */}
-                <Card className="border border-gray-200 mb-4">
+                <Card className="border border-gray-200 bg-white/95 backdrop-blur-sm mb-4">
                     <CardHeader>
                         <CardTitle className="text-lg font-medium text-gray-900">
                             {isAdminMode ? "Adicionar Novo Jogo" : "Sugerir Novo Jogo"}
@@ -545,7 +569,7 @@ export default function GameVotingForm() {
                 </Card>
 
                 {/* Search Bar */}
-                <Card className="border border-gray-200 mb-4">
+                <Card className="border border-gray-200 bg-white/95 backdrop-blur-sm mb-4">
                     <CardContent className="p-4">
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -589,7 +613,7 @@ export default function GameVotingForm() {
                 <div className="space-y-4 mb-12">
                     {/* Controles de Paginação - Topo */}
                     {filteredGames.length > 0 && (
-                        <Card className="border border-gray-200">
+                        <Card className="border border-gray-200 bg-white/95 backdrop-blur-sm">
                             <CardContent className="p-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
@@ -672,7 +696,7 @@ export default function GameVotingForm() {
 
                     {/* Lista de Jogos Paginada */}
                     {filteredGames.length === 0 ? (
-                        <Card className="border border-gray-200">
+                        <Card className="border border-gray-200 bg-white/95 backdrop-blur-sm">
                             <CardContent className="p-12 text-center">
                                 <p className="text-gray-500">Nenhum jogo disponível para votação.</p>
                                 <p className="text-sm text-gray-400 mt-2">Seja o primeiro a sugerir um jogo!</p>
@@ -686,7 +710,7 @@ export default function GameVotingForm() {
                                 const globalIndex = (currentPage - 1) * itemsPerPage + index + 1
 
                                 return (
-                                    <Card key={game.id} className="border border-gray-200">
+                                    <Card key={game.id} className="border border-gray-200 bg-white/95 backdrop-blur-sm">
                                         <CardContent className="p-6">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex-1">
@@ -747,7 +771,7 @@ export default function GameVotingForm() {
 
                             {/* Controles de Paginação - Rodapé */}
                             {Math.ceil(filteredGames.length / itemsPerPage) > 1 && (
-                                <Card className="border border-gray-200">
+                                <Card className="border border-gray-200 bg-white/95 backdrop-blur-sm">
                                     <CardContent className="p-4">
                                         <div className="flex items-center justify-center gap-2">
                                             <Button
