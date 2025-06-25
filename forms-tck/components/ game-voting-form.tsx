@@ -199,8 +199,8 @@ export default function GameVotingForm() {
   "furry simulator",
   "furry porn",
   "furry hentai",
-  "porno", "porn", "menstrual", "menstruação", "pornomenstrual", "porno menstrual", "porn menstrual",
-  "menstrual porn", "menstruação porno", "menstruação porn", "fetiche menstrual", "blood fetish"
+  "furry hentai simulator",
+  
 ]
 
     const validateGameName = (name: string): { isValid: boolean; reason?: string } => {
