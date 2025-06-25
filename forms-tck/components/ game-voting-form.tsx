@@ -200,7 +200,7 @@ export default function GameVotingForm() {
   "furry porn",
   "furry hentai",
   "furry hentai simulator",
-  
+
 ]
 
     const validateGameName = (name: string): { isValid: boolean; reason?: string } => {
@@ -837,7 +837,7 @@ export default function GameVotingForm() {
                             </a>
 
                             <a
-                                href="https://linkedin.com/in/arthur-araujo"
+                                href="www.linkedin.com/in/arthur-araujo-7bb8041a9"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
