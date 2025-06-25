@@ -34,6 +34,10 @@ export default function GameVotingForm() {
   const [adminPassword, setAdminPassword] = useState("")
   const [showAdminLogin, setShowAdminLogin] = useState(false)
 
+  // Estados de paginação
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
+
   const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin123"
 
   // Carregar dados do Supabase
@@ -252,6 +256,14 @@ export default function GameVotingForm() {
 
   const totalVotes = games.reduce((sum, game) => sum + game.votes, 0)
 
+  // Reset página quando jogos mudarem drasticamente
+  useEffect(() => {
+    const maxPage = Math.ceil(games.length / itemsPerPage)
+    if (currentPage > maxPage && maxPage > 0) {
+      setCurrentPage(maxPage)
+    }
+  }, [games.length, itemsPerPage, currentPage])
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
@@ -354,8 +366,90 @@ export default function GameVotingForm() {
           </div>
         </div>
 
-        {/* Games List */}
+        {/* Games List com Paginação */}
         <div className="space-y-4 mb-12">
+          {/* Controles de Paginação - Topo */}
+          {games.length > 0 && (
+            <Card className="border border-gray-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm text-gray-600">Itens por página:</Label>
+                      <select
+                        value={itemsPerPage}
+                        onChange={(e) => {
+                          setItemsPerPage(Number(e.target.value))
+                          setCurrentPage(1)
+                        }}
+                        className="border border-gray-300 rounded px-2 py-1 text-sm"
+                      >
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                        <option value={50}>50</option>
+                      </select>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Mostrando {Math.min((currentPage - 1) * itemsPerPage + 1, games.length)} -{" "}
+                      {Math.min(currentPage * itemsPerPage, games.length)} de {games.length} jogos
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      variant="outline"
+                      size="sm"
+                    >
+                      ← Anterior
+                    </Button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.ceil(games.length / itemsPerPage) }, (_, i) => i + 1)
+                        .filter((page) => {
+                          const totalPages = Math.ceil(games.length / itemsPerPage)
+                          if (totalPages <= 7) return true
+                          if (page === 1 || page === totalPages) return true
+                          if (Math.abs(page - currentPage) <= 1) return true
+                          return false
+                        })
+                        .map((page, index, array) => {
+                          const prevPage = array[index - 1]
+                          const showEllipsis = prevPage && page - prevPage > 1
+
+                          return (
+                            <div key={page} className="flex items-center">
+                              {showEllipsis && <span className="px-2 text-gray-400">...</span>}
+                              <Button
+                                onClick={() => setCurrentPage(page)}
+                                variant={currentPage === page ? "default" : "outline"}
+                                size="sm"
+                                className="min-w-[32px] h-8"
+                              >
+                                {page}
+                              </Button>
+                            </div>
+                          )
+                        })}
+                    </div>
+
+                    <Button
+                      onClick={() => setCurrentPage(Math.min(Math.ceil(games.length / itemsPerPage), currentPage + 1))}
+                      disabled={currentPage === Math.ceil(games.length / itemsPerPage)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Próxima →
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Lista de Jogos Paginada */}
           {games.length === 0 ? (
             <Card className="border border-gray-200">
               <CardContent className="p-12 text-center">
@@ -364,69 +458,125 @@ export default function GameVotingForm() {
               </CardContent>
             </Card>
           ) : (
-            games.map((game, index) => {
-              const hasVotedThisGame = userVotes.includes(game.id)
-              const percentage = totalVotes > 0 ? Math.round((game.votes / totalVotes) * 100) : 0
+            <>
+              {games.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((game, index) => {
+                const hasVotedThisGame = userVotes.includes(game.id)
+                const percentage = totalVotes > 0 ? Math.round((game.votes / totalVotes) * 100) : 0
+                const globalIndex = (currentPage - 1) * itemsPerPage + index + 1
 
-              return (
-                <Card key={game.id} className="border border-gray-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
-                          <h3 className="text-lg font-medium text-gray-900">{game.name}</h3>
-                          <Badge variant="secondary" className="text-xs">
-                            {game.genre}
-                          </Badge>
-                          {percentage > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {percentage}%
+                return (
+                  <Card key={game.id} className="border border-gray-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-sm font-medium text-gray-500">#{globalIndex}</span>
+                            <h3 className="text-lg font-medium text-gray-900">{game.name}</h3>
+                            <Badge variant="secondary" className="text-xs">
+                              {game.genre}
                             </Badge>
-                          )}
-                        </div>
-                        {/* Barra de progresso */}
-                        {totalVotes > 0 && (
-                          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${percentage}%` }}
-                            ></div>
+                            {percentage > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                {percentage}%
+                              </Badge>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4 ml-4">
-                        <div className="text-right">
-                          <div className="text-2xl font-light text-gray-900">{game.votes}</div>
-                          <div className="text-sm text-gray-500">votos</div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => handleVote(game.id)}
-                            disabled={hasVotedThisGame || isLoading}
-                            variant={hasVotedThisGame ? "secondary" : "default"}
-                            className="min-w-[80px]"
-                          >
-                            {hasVotedThisGame ? "✓ Votado" : "Votar"}
-                          </Button>
-                          {isAdminMode && (
-                            <Button
-                              onClick={() => handleRemoveGame(game.id)}
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              disabled={isLoading}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                          {/* Barra de progresso */}
+                          {totalVotes > 0 && (
+                            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                              <div
+                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${percentage}%` }}
+                              ></div>
+                            </div>
                           )}
                         </div>
+                        <div className="flex items-center gap-4 ml-4">
+                          <div className="text-right">
+                            <div className="text-2xl font-light text-gray-900">{game.votes}</div>
+                            <div className="text-sm text-gray-500">votos</div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => handleVote(game.id)}
+                              disabled={hasVotedThisGame || isLoading}
+                              variant={hasVotedThisGame ? "secondary" : "default"}
+                              className="min-w-[80px]"
+                            >
+                              {hasVotedThisGame ? "✓ Votado" : "Votar"}
+                            </Button>
+                            {isAdminMode && (
+                              <Button
+                                onClick={() => handleRemoveGame(game.id)}
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                disabled={isLoading}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+
+              {/* Controles de Paginação - Rodapé */}
+              {Math.ceil(games.length / itemsPerPage) > 1 && (
+                <Card className="border border-gray-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                        variant="outline"
+                        size="sm"
+                      >
+                        ⏮ Primeira
+                      </Button>
+
+                      <Button
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                        variant="outline"
+                        size="sm"
+                      >
+                        ← Anterior
+                      </Button>
+
+                      <div className="flex items-center gap-1 mx-4">
+                        <span className="text-sm text-gray-600">
+                          Página {currentPage} de {Math.ceil(games.length / itemsPerPage)}
+                        </span>
+                      </div>
+
+                      <Button
+                        onClick={() =>
+                          setCurrentPage(Math.min(Math.ceil(games.length / itemsPerPage), currentPage + 1))
+                        }
+                        disabled={currentPage === Math.ceil(games.length / itemsPerPage)}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Próxima →
+                      </Button>
+
+                      <Button
+                        onClick={() => setCurrentPage(Math.ceil(games.length / itemsPerPage))}
+                        disabled={currentPage === Math.ceil(games.length / itemsPerPage)}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Última ⏭
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
-              )
-            })
+              )}
+            </>
           )}
         </div>
 
