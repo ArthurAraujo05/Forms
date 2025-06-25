@@ -28,12 +28,11 @@ export default function GameVotingForm() {
   const [newGameName, setNewGameName] = useState("")
   const [showSuggestionForm, setShowSuggestionForm] = useState(false)
 
-  // Admin states
   const [isAdminMode, setIsAdminMode] = useState(false)
   const [adminPassword, setAdminPassword] = useState("")
   const [showAdminLogin, setShowAdminLogin] = useState(false)
 
-  const ADMIN_PASSWORD = "tckforever123omelhor" // Em produção, isso deveria vir de variável de ambiente
+  const ADMIN_PASSWORD = "tckforever123omelhor"
 
   const handleVote = (gameId: number) => {
     setGames(games.map((game) => (game.id === gameId ? { ...game, votes: game.votes + 1 } : game)))
@@ -41,20 +40,17 @@ export default function GameVotingForm() {
 
   const handleSuggestGame = () => {
     if (!newGameName.trim()) return
-
     const newGame: Game = {
       id: games.length + 1,
       name: newGameName,
       genre: "Sugestão",
       votes: 0,
     }
-
     setGames([...games, newGame])
     setNewGameName("")
     setShowSuggestionForm(false)
   }
 
-  // Admin functions
   const handleAdminLogin = () => {
     if (adminPassword === ADMIN_PASSWORD) {
       setIsAdminMode(true)
@@ -65,9 +61,7 @@ export default function GameVotingForm() {
     }
   }
 
-  const handleAdminLogout = () => {
-    setIsAdminMode(false)
-  }
+  const handleAdminLogout = () => setIsAdminMode(false)
 
   const handleRemoveGame = (gameId: number) => {
     if (confirm("Tem certeza que deseja remover este jogo?")) {
@@ -170,51 +164,51 @@ export default function GameVotingForm() {
               <CardContent className="p-12 text-center">
                 <p className="text-gray-500">Nenhum jogo disponível para votação.</p>
                 {isAdminMode && (
-                  <p className="text-sm text-gray-400 mt-2">Use a seção "Sugerir Novo Jogo" para adicionar jogos.</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    Use a seção &quot;Sugerir Novo Jogo&quot; para adicionar jogos.
+                  </p>
                 )}
               </CardContent>
             </Card>
           ) : (
-            sortedGames.map((game, index) => {
-              return (
-                <Card key={game.id} className="border border-gray-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
-                          <h3 className="text-lg font-medium text-gray-900">{game.name}</h3>
-                          <Badge variant="secondary" className="text-xs">
-                            {game.genre}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="text-2xl font-light text-gray-900">{game.votes}</div>
-                          <div className="text-sm text-gray-500">votos</div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button onClick={() => handleVote(game.id)} className="min-w-[80px]">
-                            Votar
-                          </Button>
-                          {isAdminMode && (
-                            <Button
-                              onClick={() => handleRemoveGame(game.id)}
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+            sortedGames.map((game, index) => (
+              <Card key={game.id} className="border border-gray-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
+                        <h3 className="text-lg font-medium text-gray-900">{game.name}</h3>
+                        <Badge variant="secondary" className="text-xs">
+                          {game.genre}
+                        </Badge>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              )
-            })
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="text-2xl font-light text-gray-900">{game.votes}</div>
+                        <div className="text-sm text-gray-500">votos</div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={() => handleVote(game.id)} className="min-w-[80px]">
+                          Votar
+                        </Button>
+                        {isAdminMode && (
+                          <Button
+                            onClick={() => handleRemoveGame(game.id)}
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
           )}
         </div>
 
