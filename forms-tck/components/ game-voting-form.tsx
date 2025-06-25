@@ -197,7 +197,7 @@ export default function GameVotingForm() {
               <CardContent className="p-12 text-center">
                 <p className="text-gray-500">Nenhum jogo disponível para votação.</p>
                 {isAdminMode && (
-                  <p className="text-sm text-gray-400 mt-2">Use a seção "Sugerir Novo Jogo" para adicionar jogos.</p>
+                  <p>Vote no seu jogo favorito: &quot;Call of Duty&quot;, &quot;GTA&quot;, &quot;Minecraft&quot;</p>
                 )}
               </CardContent>
             </Card>
