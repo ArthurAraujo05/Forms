@@ -389,6 +389,56 @@ export default function GameVotingForm() {
                     </div>
                 </div>
 
+                {/* Suggestion Section */}
+                <Card className="border border-gray-200 mb-4">
+                    <CardHeader>
+                        <CardTitle className="text-lg font-medium text-gray-900">
+                            {isAdminMode ? "Adicionar Novo Jogo" : "Sugerir Novo Jogo"}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {!showSuggestionForm ? (
+                            <Button
+                                onClick={() => setShowSuggestionForm(true)}
+                                variant="outline"
+                                className="w-full"
+                                disabled={isLoading}
+                            >
+                                + Adicionar Jogo
+                            </Button>
+                        ) : (
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="gameName" className="text-sm font-medium text-gray-700">
+                                        Nome do Jogo
+                                    </Label>
+                                    <Input
+                                        id="gameName"
+                                        value={newGameName}
+                                        onChange={(e) => setNewGameName(e.target.value)}
+                                        placeholder="Digite o nome do jogo"
+                                        className="mt-1"
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button onClick={handleSuggestGame} disabled={!newGameName.trim() || isLoading} className="flex-1">
+                                        {isAdminMode ? "Adicionar" : "Sugerir"}
+                                    </Button>
+                                    <Button
+                                        onClick={() => setShowSuggestionForm(false)}
+                                        variant="outline"
+                                        className="flex-1"
+                                        disabled={isLoading}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
                 {/* Search Bar */}
                 <Card className="border border-gray-200 mb-4">
                     <CardContent className="p-4">
@@ -645,56 +695,6 @@ export default function GameVotingForm() {
                         </>
                     )}
                 </div>
-
-                {/* Suggestion Section */}
-                <Card className="border border-gray-200">
-                    <CardHeader>
-                        <CardTitle className="text-lg font-medium text-gray-900">
-                            {isAdminMode ? "Adicionar Novo Jogo" : "Sugerir Novo Jogo"}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {!showSuggestionForm ? (
-                            <Button
-                                onClick={() => setShowSuggestionForm(true)}
-                                variant="outline"
-                                className="w-full"
-                                disabled={isLoading}
-                            >
-                                + Adicionar Jogo
-                            </Button>
-                        ) : (
-                            <div className="space-y-4">
-                                <div>
-                                    <Label htmlFor="gameName" className="text-sm font-medium text-gray-700">
-                                        Nome do Jogo
-                                    </Label>
-                                    <Input
-                                        id="gameName"
-                                        value={newGameName}
-                                        onChange={(e) => setNewGameName(e.target.value)}
-                                        placeholder="Digite o nome do jogo"
-                                        className="mt-1"
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button onClick={handleSuggestGame} disabled={!newGameName.trim() || isLoading} className="flex-1">
-                                        {isAdminMode ? "Adicionar" : "Sugerir"}
-                                    </Button>
-                                    <Button
-                                        onClick={() => setShowSuggestionForm(false)}
-                                        variant="outline"
-                                        className="flex-1"
-                                        disabled={isLoading}
-                                    >
-                                        Cancelar
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
             </div>
         </div>
     )
