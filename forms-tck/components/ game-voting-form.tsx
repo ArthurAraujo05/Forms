@@ -41,7 +41,7 @@ export default function GameVotingForm() {
     // Estado de busca
     const [searchTerm, setSearchTerm] = useState("")
 
-    const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_PASSWORD 
+    const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_PASSWORD
 
     // Carregar dados do Supabase
     const loadData = useCallback(async () => {
@@ -144,8 +144,110 @@ export default function GameVotingForm() {
         }
     }
 
+    // Lista de palavras proibidas (case-insensitive)
+    const BLOCKED_WORDS = [
+        "hentai",
+        "sexy",
+        "sexo",
+        "sex",
+        "porn",
+        "porno",
+        "pornografia",
+        "hitler",
+        "nazi",
+        "nazismo",
+        "fascist",
+        "fascismo",
+        "nude",
+        "naked",
+        "strip",
+        "adult",
+        "adulto",
+        "erotic",
+        "erotico",
+        "fetish",
+        "fetiche",
+        "xxx",
+        "18+",
+        "nsfw",
+        "milf",
+        "dilf",
+        "gay",
+        "lesbian",
+        "lgbt",
+        "trans",
+        "transgender",
+        "rape",
+        "estupro",
+        "violencia",
+        "violence",
+        "drug",
+        "droga",
+        "cocaine",
+        "cocaina",
+        "maconha",
+        "marijuana",
+        "kill",
+        "matar",
+        "morte",
+        "death",
+        "suicide",
+        "suicidio",
+        "fuck",
+        "shit",
+        "bitch",
+        "ass",
+        "dick",
+        "pussy",
+        "caralho",
+        "porra",
+        "merda",
+        "cu",
+        "buceta",
+        "puta",
+    ]
+
+    const validateGameName = (name: string): { isValid: boolean; reason?: string } => {
+        const lowerName = name.toLowerCase().trim()
+
+        // Verificar palavras proibidas
+        for (const word of BLOCKED_WORDS) {
+            if (lowerName.includes(word.toLowerCase())) {
+                return {
+                    isValid: false,
+                    reason: `Conteúdo inadequado detectado. Por favor, sugira jogos apropriados para todos os públicos.`,
+                }
+            }
+        }
+
+        // Verificar se não é muito curto
+        if (lowerName.length < 2) {
+            return {
+                isValid: false,
+                reason: "O nome do jogo deve ter pelo menos 2 caracteres.",
+            }
+        }
+
+        // Verificar se não é muito longo
+        if (lowerName.length > 100) {
+            return {
+                isValid: false,
+                reason: "O nome do jogo deve ter no máximo 100 caracteres.",
+            }
+        }
+
+        return { isValid: true }
+    }
+
     const handleSuggestGame = async () => {
         if (!newGameName.trim()) return
+
+        // Validar conteúdo
+        const validation = validateGameName(newGameName)
+        if (!validation.isValid) {
+            alert(validation.reason)
+            return
+        }
 
         // Verificar se já existe um jogo com o mesmo nome (case-insensitive)
         const existingGame = games.find((game) => game.name.toLowerCase().trim() === newGameName.toLowerCase().trim())
@@ -397,6 +499,13 @@ export default function GameVotingForm() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
+                        <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-sm text-yellow-800">
+                                ⚠️ <strong>Diretrizes:</strong> Sugestões devem ser apropriadas para todos os públicos. Conteúdo
+                                inadequado será automaticamente rejeitado.
+                            </p>
+                        </div>
+
                         {!showSuggestionForm ? (
                             <Button
                                 onClick={() => setShowSuggestionForm(true)}
@@ -695,6 +804,7 @@ export default function GameVotingForm() {
                         </>
                     )}
                 </div>
+
                 {/* Footer */}
                 <footer className="mt-16 border-t border-gray-200 pt-8">
                     <div className="text-center space-y-4">
@@ -719,7 +829,7 @@ export default function GameVotingForm() {
                             </a>
 
                             <a
-                                href="https://twitch.tv/araujoislov"
+                                href="https://twitch.tv/seucanal"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-colors"
@@ -731,7 +841,7 @@ export default function GameVotingForm() {
                             </a>
 
                             <a
-                                href="https://www.linkedin.com/in/arthur-araujo-7bb8041a9/"
+                                href="https://linkedin.com/in/arthur-araujo"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
@@ -743,7 +853,7 @@ export default function GameVotingForm() {
                             </a>
 
                             <a
-                                href="mailto:arthurguiaraujo123@gmail.com"
+                                href="mailto:arthur@exemplo.com"
                                 className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition-colors"
                             >
                                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -761,7 +871,7 @@ export default function GameVotingForm() {
                         {/* Informações adicionais */}
                         <div className="text-sm text-gray-500 space-y-1">
                             <p>Sistema de Votação de Jogos • Desenvolvido com Next.js & Supabase</p>
-                            <p>© 2025 Arthur Araujo. Todos os direitos reservados.</p>
+                            <p>© 2024 Arthur Araújo. Todos os direitos reservados.</p>
                         </div>
 
                         {/* Badge de tecnologias */}
