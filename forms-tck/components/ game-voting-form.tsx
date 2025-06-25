@@ -145,67 +145,55 @@ export default function GameVotingForm() {
     }
 
     // Lista de palavras proibidas (case-insensitive)
-    const BLOCKED_WORDS = [
-        "hentai",
-        "sexy",
-        "sexo",
-        "sex",
-        "porn",
-        "porno",
-        "pornografia",
-        "hitler",
-        "nazi",
-        "nazismo",
-        "fascist",
-        "fascismo",
-        "nude",
-        "naked",
-        "strip",
-        "adult",
-        "adulto",
-        "erotic",
-        "erotico",
-        "fetish",
-        "fetiche",
-        "xxx",
-        "18+",
-        "nsfw",
-        "milf",
-        "dilf",
-        "gay",
-        "lesbian",
-        "lgbt",
-        "trans",
-        "transgender",
-        "rape",
-        "estupro",
-        "violencia",
-        "violence",
-        "drug",
-        "droga",
-        "cocaine",
-        "cocaina",
-        "maconha",
-        "marijuana",
-        "kill",
-        "matar",
-        "morte",
-        "death",
-        "suicide",
-        "suicidio",
-        "fuck",
-        "shit",
-        "bitch",
-        "ass",
-        "dick",
-        "pussy",
-        "caralho",
-        "porra",
-        "merda",
-        "cu",
-        "buceta",
-        "puta",
-    ]
+   const BLOCKED_WORDS = [
+  // Racismo (BR)
+  "negro", "preto", "crioulo", "criolinha", "macaco", "macaca", "escravo", "preto fedido", "negrinha",
+  "negrume", "urubu", "senzala", "capitão do mato", "samba do crioulo doido",
+
+  // Xenofobia (BR)
+  "paraíba", "baianada", "nordestino burro", "índio preguiçoso", "selvagem", "bugre", "jeca", "matuto", "zé povinho",
+
+  // Racismo (EUA)
+  "nigger", "nigga", "coon", "porch monkey", "jiggaboo", "ape", "monkey", "uncle tom", "sambo",
+
+  // Xenofobia (EUA)
+  "spic", "beaner", "wetback", "chink", "gook", "zipperhead", "raghead", "terrorist", "camel jockey",
+
+  // LGBTfobia
+  "viado", "veado", "bicha", "bichinha", "sapatão", "dyke", "faggot", "fag", "traveco", "travec", "maricon",
+  "homo", "boiola", "baitola", "frutinha", "viadinho",
+
+  // Conteúdo sexual/adulto
+  "sexo", "sex", "porn", "porno", "pornografia", "hentai", "nude", "naked", "strip", "stripper", "adult",
+  "adulto", "erotic", "erotico", "fetish", "fetiche", "xxx", "18+", "nsfw", "milf", "dilf", "boquete", "chupada",
+  "pussy", "dick", "cock", "fuck", "bunda", "bunduda", "buceta", "pica", "rola", "tesão", "gozada", "mamada",
+  "corno", "corna", "corninho", "pau", "pauzudo", "rabuda", "peituda", "sexy", "orgasm", "orgasmo",
+
+  // Drogas
+  "droga", "drogado", "cocaine", "cocaina", "maconha", "marijuana", "crack", "heroína", "heroina", "meth",
+  "metanfetamina", "ácido", "lsd", "êxtase", "ecstasy", "mdma", "baseado", "beck", "erva", "bong", "skank",
+
+  // Violência, morte, terrorismo
+  "matar", "kill", "death", "morte", "assassinato", "assassino", "terror", "terrorismo", "massacre", "bomba",
+  "tiroteio", "bala perdida", "suicídio", "suicidio", "suicide", "enforcar", "pular da ponte", "tiro na cabeça",
+  "genocida", "estupro", "rape", "estuprador", "abuso sexual", "pedofilia", "pedofilo",
+
+  // Capacitismo e bullying
+  "retardado", "retard", "aleijado", "cripple", "dumb", "imbecil", "idiota", "mongoloide", "anormal", "babaca",
+  "defeituoso", "doente mental", "atrasado", "tapado", "cego", "surdo", "mudo", "burro", "burra",
+
+  // Ofensas gerais / palavrões
+  "merda", "porra", "caralho", "cu", "buceta", "bosta", "puta", "putinha", "viado", "piranha", "vagabunda",
+  "safada", "otário", "otaria", "imbecil", "idiota", "chifrudo", "babaca", "arrombado", "lixo", "nojento",
+  "nojenta", "desgraçado", "maldito", "corno", "fdp", "filho da puta", "pau no cu", "panaca", "escroto",
+  "escrota", "cadela", "desgraça", "crápula", "energúmeno",
+
+  // Extremismo político
+  "hitler", "nazismo", "nazi", "fascismo", "fascist", "kkk", "supremacista", "white power", "heil hitler",
+
+  // Palavras que causam problemas em ambientes de comunidade
+  "ex", "julia", "jhulia", "xulia", "cu de burro simulato", "cocosimulator", "hentai simulator"
+]
 
     const validateGameName = (name: string): { isValid: boolean; reason?: string } => {
         const lowerName = name.toLowerCase().trim()
