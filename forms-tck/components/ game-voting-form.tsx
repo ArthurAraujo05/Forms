@@ -192,7 +192,7 @@ export default function GameVotingForm() {
   "hitler", "nazismo", "nazi", "fascismo", "fascist", "kkk", "supremacista", "white power", "heil hitler",
 
   // Palavras que causam problemas em ambientes de comunidade
-  "ex", "julia", "jhulia", "xulia", "cu de burro simulato", "cocosimulator", "hentai simulator"
+  "ex", "julia", "jhulia", "xulia", "cu de burro simulato", "cocosimulator", "hentai simulator", "NUDES MAE DO TCK", "nudes", "nude", "nueds", "nuudes", "nude mae do tck", "n u d e s", "nu d es", "nude(s),"
 ]
 
     const validateGameName = (name: string): { isValid: boolean; reason?: string } => {
