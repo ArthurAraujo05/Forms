@@ -761,7 +761,7 @@ export default function GameVotingForm() {
                         {/* Informações adicionais */}
                         <div className="text-sm text-gray-500 space-y-1">
                             <p>Sistema de Votação de Jogos • Desenvolvido com Next.js & Supabase</p>
-                            <p>© 2024 Arthur Araujo. Todos os direitos reservados.</p>
+                            <p>© 2025 Arthur Araujo. Todos os direitos reservados.</p>
                         </div>
 
                         {/* Badge de tecnologias */}
